@@ -1,0 +1,38 @@
+[
+  {
+    "id": "low-risk",
+    "name": "Low risk",
+    "description": "42-year-old woman, non-anginal chest pain, normal ECG and echo.",
+    "features": {
+      "age": 42, "sex": "Fmale", "weight": 62, "height": 163, "bmi": 23.3,
+      "nonanginal": "Y", "bp": 115, "pr": 72,
+      "fbs": 88, "ldl": 95, "hdl": 55, "tg": 110,
+      "ef_tte": 60, "region_rwma": 0
+    }
+  },
+  {
+    "id": "moderate-risk",
+    "name": "Moderate risk",
+    "description": "56-year-old man, hypertensive smoker with atypical chest pain.",
+    "features": {
+      "age": 56, "sex": "Male", "weight": 84, "height": 172, "bmi": 28.4,
+      "htn": 1, "current_smoker": 1, "dlp": "Y", "atypical": "Y",
+      "bp": 145, "pr": 80,
+      "fbs": 110, "ldl": 135, "hdl": 38, "tg": 190,
+      "ef_tte": 55, "region_rwma": 0
+    }
+  },
+  {
+    "id": "high-risk",
+    "name": "High risk",
+    "description": "67-year-old diabetic man, typical angina, T inversion and RWMA on echo.",
+    "features": {
+      "age": 67, "sex": "Male", "weight": 88, "height": 170, "bmi": 30.4, "obesity": "Y",
+      "dm": 1, "htn": 1, "fh": 1, "dlp": "Y", "typical_chest_pain": 1, "exertional_cp": "Y",
+      "bp": 160, "pr": 88, "function_class": 2,
+      "t_inversion": 1, "st_depression": 1,
+      "fbs": 185, "ldl": 160, "hdl": 32, "tg": 240, "cr": 1.2,
+      "ef_tte": 40, "region_rwma": 2
+    }
+  }
+]

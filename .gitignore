@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+
+# Node
+node_modules/
+dist/
+
+# Data and model artifacts
+ml/data/*
+!ml/data/.gitkeep
+ml/artifacts/*.joblib
+ml/artifacts/*.pkl
+
+# Editor / OS
+.cursor/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+.env

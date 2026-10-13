@@ -1,0 +1,38 @@
+{
+  "version": 1,
+  "targets": {
+    "CAD": {
+      "label": "Coronary Artery Disease",
+      "column": "Cath",
+      "positive": "Cad",
+      "kind": "overall"
+    },
+    "LAD": {
+      "label": "Left Anterior Descending",
+      "column": "LAD",
+      "positive": "Stenotic",
+      "kind": "vessel",
+      "territory": "anterior",
+      "description": "Supplies the front of the heart and most of the interventricular septum.",
+      "meshes": ["LAD_prox", "LAD_mid", "LAD_dist", "D1"]
+    },
+    "LCX": {
+      "label": "Left Circumflex",
+      "column": "LCX",
+      "positive": "Stenotic",
+      "kind": "vessel",
+      "territory": "lateral",
+      "description": "Supplies the side and back of the left ventricle.",
+      "meshes": ["LCX_prox", "LCX_mid", "LCX_dist", "OM1"]
+    },
+    "RCA": {
+      "label": "Right Coronary Artery",
+      "column": "RCA",
+      "positive": "Stenotic",
+      "kind": "vessel",
+      "territory": "inferior",
+      "description": "Supplies the right side and bottom of the heart.",
+      "meshes": ["RCA_prox", "RCA_mid", "RCA_dist", "PDA"]
+    }
+  }
+}
