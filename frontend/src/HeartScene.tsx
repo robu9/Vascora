@@ -126,7 +126,7 @@ export function HeartScene() {
   const [labels, setLabels] = useState(false), [paused, setPaused] = useState(false);
   const [hidden, setHidden] = useState(document.hidden), [reduced, setReduced] = useState(matchMedia('(prefers-reduced-motion: reduce)').matches);
   const [dpr, setDpr] = useState(1.5), [assetError, setAssetError] = useState<string | null>(null);
-  const { schema, samples, sampleId, mode, setMode, analysis } = useStore();
+  const { schema, samples, sampleId, features, mode, setMode, analysis } = useStore();
   useEffect(() => {
     const visibility = () => setHidden(document.hidden);
     const media = matchMedia('(prefers-reduced-motion: reduce)');
@@ -134,7 +134,7 @@ export function HeartScene() {
     document.addEventListener('visibilitychange', visibility); media.addEventListener('change', motion);
     return () => { document.removeEventListener('visibilitychange', visibility); media.removeEventListener('change', motion); };
   }, []);
-  const bpm = Number(samples.find(s => s.id === sampleId)?.features.pr ?? schema?.features.find(f => f.key === 'pr')?.default ?? 75);
+  const bpm = Number(features.pr ?? samples.find(s => s.id === sampleId)?.features.pr ?? schema?.features.find(f => f.key === 'pr')?.default ?? 75);
   const playing = !paused && !hidden && !reduced;
   return <section className="viewer" aria-label="Interactive anatomical heart">
     <div className="viewer-heading"><div><span className="eyebrow">ANATOMICAL EXPLORER</span><h1>A closer look<br/>at the heart.</h1><p>Explore the coronary arteries and their estimated risk.</p></div><span className="organ-index">01 / HEART</span></div>

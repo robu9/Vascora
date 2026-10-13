@@ -5,6 +5,9 @@ import { Mesh, PerspectiveCamera, Raycaster, Vector2, Vector3 } from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 const ids = ['low-risk', 'moderate-risk', 'high-risk'];
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => sessionStorage.setItem('vascora-disclaimer', '1'));
+});
 test('live API, all patient presets, vessel selection, views and screenshot', async ({ page, request }) => {
   const errors: string[] = []; page.on('pageerror', e => errors.push(e.message));
   await page.goto('/');
@@ -38,11 +41,11 @@ test('live API, all patient presets, vessel selection, views and screenshot', as
   expect(errors).toEqual([]);
 });
 test('failed analysis stays neutral and can retry', async ({ page }) => {
-  await page.route('**/api/analyze', route => route.fulfill({ status: 503, body: '{}' }));
+  await page.route('**/api/predict', route => route.fulfill({ status: 503, body: '{}' }));
   await page.goto('/'); await page.getByLabel('Sample patient').selectOption('low-risk');
   await expect(page.getByRole('alert')).toContainText('503');
   await expect(page.getByRole('button', { name: 'Risk overlay' })).toBeDisabled();
-  await page.unroute('**/api/analyze'); await page.getByRole('button', { name: 'Retry analysis' }).click();
+  await page.unroute('**/api/predict'); await page.getByRole('button', { name: 'Retry analysis' }).click();
   await expect(page.getByRole('button', { name: 'Risk overlay' })).toBeEnabled();
 });
 test('missing GLB preserves numeric results', async ({ page }) => {
@@ -73,10 +76,10 @@ test('zero probability is displayed and unavailable WebGL keeps results usable',
       return Reflect.apply(original, this, [type, ...args]);
     } as typeof original;
   });
-  await page.route('**/api/analyze', async route => {
+  await page.route('**/api/predict', async route => {
     const res = await route.fetch(); const body = await res.json();
-    body.prediction.cad.probability = 0; body.prediction.cad.predicted_positive = false;
-    body.prediction.vessels.LAD.probability = 0; body.prediction.vessels.LAD.predicted_positive = false;
+    body.cad.probability = 0; body.cad.predicted_positive = false;
+    body.vessels.LAD.probability = 0; body.vessels.LAD.predicted_positive = false;
     await route.fulfill({ json: body });
   });
   await page.goto('/'); await page.getByLabel('Sample patient').selectOption('low-risk');
@@ -142,4 +145,30 @@ test('a real artery mesh click and labels select the same target as vessel butto
   await page.getByRole('button', { name: 'Labels', exact: true }).click();
   await expect(page.locator('.artery-label')).toHaveCount(0);
   expect(errors).toEqual([]);
+});
+test('clinical edits, explanations and held-out metrics stay tied to the heart', async ({ page }) => {
+  await page.goto('/');
+  await page.getByLabel('Sample patient').selectOption('moderate-risk');
+  await expect(page.getByRole('button', { name: 'Risk overlay' })).toBeEnabled();
+  const before = await page.locator('.big-probability').innerText();
+  await expect(page.getByRole('region', { name: 'Why this estimate' })).toContainText('Physiological measurements');
+  await expect(page.getByRole('region', { name: 'Why this estimate' })).toContainText('Systolic Blood Pressure');
+  await page.getByRole('button', { name: 'Show metrics' }).click();
+  await expect(page.getByRole('table', { name: 'Classification metrics' })).toContainText('ROC-AUC');
+  await expect(page.getByRole('table', { name: 'Classification metrics' })).toContainText('CAD');
+  await page.getByLabel('Age', { exact: true }).fill('85');
+  await expect(page.locator('.big-probability')).not.toHaveText(before, { timeout: 20000 });
+  await expect(page.getByRole('button', { name: 'Risk overlay' })).toHaveAttribute('aria-pressed', 'true');
+});
+test('the safety disclaimer is acknowledged before the first session', async ({ browser }) => {
+  const page = await browser.newPage();
+  await page.goto('http://127.0.0.1:5173/');
+  const dialog = page.getByRole('dialog', { name: 'Decision support only' });
+  await expect(dialog).toBeVisible();
+  await expect(dialog).toContainText('not a substitute');
+  await page.getByRole('button', { name: 'I understand' }).click();
+  await expect(dialog).toHaveCount(0);
+  await page.reload();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await page.close();
 });

@@ -2,12 +2,19 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { useStore } from './store';
 import type { Analysis } from './types';
 const sample = (id: string) => ({ id, name: id, description: '', features: { age: 60 } });
-const answer = (name: string) => ({ prediction: { model: { name } }, explanations: {} }) as Analysis;
-beforeEach(() => useStore.setState({ samples: [sample('a'), sample('b')], analysis: null, loading: false, error: null, mode: 'anatomy' }));
-afterEach(() => vi.unstubAllGlobals());
+const scored = (name: string) => ({ model: { name }, disclaimer: '', imputed: [] });
+const answer = (name: string) => ({ prediction: scored(name), explanations: {}, disclaimer: '' }) as unknown as Analysis;
+beforeEach(() => {
+  vi.useRealTimers();
+  useStore.setState({
+    samples: [sample('a'), sample('b')], analysis: null, counterfactual: null, features: {},
+    schema: null, loading: false, explaining: false, error: null, mode: 'anatomy', sampleId: '',
+  });
+});
+afterEach(() => { vi.clearAllTimers(); vi.unstubAllGlobals(); vi.useRealTimers(); });
 it('clears old results immediately when changing patients', async () => {
   useStore.setState({ analysis: answer('old') });
-  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify(answer('new')))));
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify(scored('new')))));
   const pending = useStore.getState().selectSample('a');
   expect(useStore.getState().analysis).toBeNull(); expect(useStore.getState().mode).toBe('anatomy');
   await pending; expect(useStore.getState().analysis?.prediction.model.name).toBe('new');
@@ -18,20 +25,53 @@ it('rejects stale responses even when transport ignores cancellation', async () 
   vi.stubGlobal('fetch', vi.fn((_url, init) => { signals.push(init.signal); return new Promise<Response>(resolve => resolvers.push(resolve)); }));
   const first = useStore.getState().selectSample('a'); const second = useStore.getState().selectSample('b');
   expect(signals[0].aborted).toBe(true);
-  resolvers[1](new Response(JSON.stringify(answer('b')))); await second;
-  resolvers[0](new Response(JSON.stringify(answer('a')))); await first;
+  resolvers[1](new Response(JSON.stringify(scored('b')))); await second;
+  resolvers[0](new Response(JSON.stringify(scored('a')))); await first;
   expect(useStore.getState().analysis?.prediction.model.name).toBe('b');
 });
 it('leaves neutral anatomy available after failure and supports retry', async () => {
-  vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce(new Response('', { status: 503 })).mockResolvedValueOnce(new Response(JSON.stringify(answer('retry')))));
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce(new Response('', { status: 503 })).mockResolvedValue(new Response(JSON.stringify(scored('retry')))));
   await useStore.getState().selectSample('a');
   expect(useStore.getState().error).toContain('503'); expect(useStore.getState().analysis).toBeNull();
   await useStore.getState().selectSample('a'); expect(useStore.getState().error).toBeNull();
+});
+it('re-scores an edited feature without dropping the current estimate first', async () => {
+  vi.useFakeTimers();
+  useStore.setState({ analysis: answer('kept'), features: { age: 50 }, mode: 'risk' });
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify(scored('edited')))));
+  useStore.getState().setFeature('age', 80);
+  expect(useStore.getState().features.age).toBe(80);
+  expect(useStore.getState().analysis?.prediction.model.name).toBe('kept');
+  await vi.advanceTimersByTimeAsync(250);
+  expect(useStore.getState().analysis?.prediction.model.name).toBe('edited');
+  expect(useStore.getState().mode).toBe('risk');
+});
+it('keeps body mass consistent when height or weight changes', () => {
+  vi.useFakeTimers();
+  vi.stubGlobal('fetch', vi.fn());
+  useStore.setState({ features: { weight: 80, height: 180, bmi: 20 } });
+  useStore.getState().setFeature('weight', 90);
+  expect(useStore.getState().features.bmi).toBe(27.8);
+});
+it('colors the heart before the factor breakdown returns', async () => {
+  const pending: ((r: Response) => void)[] = [];
+  vi.stubGlobal('fetch', vi.fn((url: string) => {
+    if (String(url).includes('/explain')) return new Promise<Response>(resolve => pending.push(resolve));
+    return Promise.resolve(new Response(JSON.stringify(scored('fast'))));
+  }));
+  await useStore.getState().selectSample('a');
+  expect(useStore.getState().mode).toBe('risk');
+  expect(useStore.getState().loading).toBe(false);
+  expect(useStore.getState().analysis?.prediction.model.name).toBe('fast');
+  expect(useStore.getState().analysis?.explanations.CAD).toBeUndefined();
+  expect(useStore.getState().explaining).toBe(true);
+  pending[0](new Response(JSON.stringify({ explanations: { CAD: { target: 'CAD' } } })));
+  await vi.waitFor(() => expect(useStore.getState().analysis?.explanations.CAD?.target).toBe('CAD'));
 });
 it('returning to anatomy cancels pending analysis', async () => {
   let resolve!: (r: Response) => void;
   vi.stubGlobal('fetch', vi.fn(() => new Promise<Response>(r => { resolve = r; })));
   const first = useStore.getState().selectSample('a');
-  await useStore.getState().selectSample(''); resolve(new Response(JSON.stringify(answer('a')))); await first;
+  await useStore.getState().selectSample(''); resolve(new Response(JSON.stringify(scored('a')))); await first;
   expect(useStore.getState().analysis).toBeNull(); expect(useStore.getState().loading).toBe(false);
 });

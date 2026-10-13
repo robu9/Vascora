@@ -17,9 +17,9 @@ branch assignments; the PDA is an explicitly documented authored approximation.
 This milestone uses **probability only for vessel color**. It does not derive
 plaque, narrowing, flow speed, or regional dysfunction from probabilities.
 Trained CAD and vessel models, SHAP, and counterfactual hints are in `ml/` and served by the API.
-Full patient forms, torso rendering, cutaways, PDFs and the broader
-dashboard remain future work. The original roadmap below is historical scope;
-this milestone and `assets-pipeline/README.md` define delivered behavior.
+The viewer includes a schema-driven patient form, live re-scoring, SHAP and physiology
+breakdowns, counterfactual hints, held-out metrics, and a first-visit disclaimer.
+Torso rendering, cutaways and PDF export remain future work.
 
 ## 0. Repo layout
 
@@ -169,7 +169,8 @@ Layout: left = patient input (schema-driven form, presets, sliders for what-if w
 - [ ] Asset pipeline: Sketchfab CC-BY heart + Z-Anatomy coronaries/torso, align in Blender, segment-named meshes, gltf-transform compress + LOD
 - [ ] R3F scene: physical myocardium material, HDRI, AO/bloom/SMAA, heartbeat shader, coronary blood-flow shader, x-ray torso
 - [ ] vessel_registry.json mapping, risk color ramp with animated transitions, stenosis bulge, hover/select/fly-to, labels, view presets
-- [ ] Dashboard: schema-driven form, presets, what-if sliders live re-predict, CAD/vessel cards, SHAP waterfall, vitals breakdown, metrics tab, PDF export
-- [ ] Persistent disclaimer banner + first-load modal + PDF footer
+- [x] Dashboard: schema-driven form, presets, what-if sliders live re-predict, CAD/vessel cards, SHAP waterfall, vitals breakdown, metrics tab
+- [x] Persistent disclaimer banner + first-load modal
+- [ ] PDF export and PDF footer
 - [ ] Performance tiers: PerformanceMonitor, AdaptiveDpr, LODs, demand frameloop; test on integrated GPU
-- [ ] 6-page documentation, evaluation results, demo video script and recording
+- [x] 6-page documentation and demo video script (`docs/REPORT.md`, `docs/DEMO_SCRIPT.md`); recording still to be published

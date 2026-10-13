@@ -7,7 +7,7 @@ and maps the predictions onto a 3D heart.
 > **Disclaimer:** Vascora is for decision support and educational purposes only. It is not a
 > substitute for coronary angiography or formal diagnostic imaging.
 
-Full project plan: [plan.md](plan.md).
+Full project plan: [plan.md](plan.md). Write-up: [docs/REPORT.md](docs/REPORT.md).
 
 ## Status
 
@@ -16,7 +16,8 @@ Full project plan: [plan.md](plan.md).
 | Shared contracts (`shared/`) | Feature schema (55 inputs) and target/vessel registry |
 | ML pipeline (`ml/`) | Trained and evaluated; see [results](#model-performance) |
 | Backend (`backend/`) | FastAPI routes served by the trained ensemble (falls back to the heuristic placeholder if no artifact is present) |
-| Frontend / 3D (`frontend/`) | React heart viewer, sample patients, vessel selection and API risk overlay |
+| Frontend / 3D (`frontend/`) | React heart viewer wired to the trained API: schema-driven inputs, live re-score, vessel colors, SHAP, counterfactuals, held-out metrics |
+| Documentation (`docs/REPORT.md`) | Preprocessing, models, evaluation, 3D pipeline, usage. Demo script in `docs/DEMO_SCRIPT.md` |
 | Anatomy (`assets-pipeline/`) | Z-Anatomy adaptation, editable Blender project, compressed GLB and validation scripts |
 
 ## Repository layout
@@ -133,10 +134,18 @@ npm ci
 npm run dev
 ```
 
-Open http://127.0.0.1:5173. The viewer starts in anatomy mode. Choose one of the
-three sample patients to load vessel probabilities; select LAD, LCX or RCA on the
-model or in the results panel. Use the four camera presets, orbit/zoom/pan, labels,
-and the heartbeat pause control. Reduced-motion preferences pause the heartbeat.
+Open http://127.0.0.1:5173. Acknowledge the decision-support disclaimer. The viewer
+starts in anatomy mode. Choose a sample patient, or edit any clinical input: the
+form is built from `/api/schema`, and changes re-score CAD, LAD, LCX and RCA.
+Artery colors and the probability figures update as soon as the prediction returns.
+The factor breakdown, grouped contributions and lower-risk hints fill in after that.
+Select an artery
+on the model or in the results panel to read its probability, confidence
+interval, SHAP contributions and the vitals, labs and echo measurements that
+fed the estimate. “Show metrics” loads the held-out evaluation. Use the four
+camera presets, orbit/zoom/pan, labels, and the heartbeat pause control.
+Reduced-motion preferences pause the heartbeat. Pulse rate in the form sets the
+illustrative beat.
 
 The frontend proxies `/api` to port 8000 locally. For a separately hosted API,
 copy `frontend/.env.example` to `frontend/.env` and set `VITE_API_BASE_URL` to its
