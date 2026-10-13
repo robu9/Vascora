@@ -15,7 +15,7 @@ Vascora/
     public/models/       # heart.glb, torso.glb (Draco/meshopt + KTX2)
   assets-pipeline/       # Blender file + gltf-transform scripts + licenses/attribution
   docs/                  # 6-page report, demo video script
-  docker-compose.yml
+  shared/                # feature_schema.json, vessel_registry.json (contracts used by ml, backend, frontend)
 ```
 
 ```mermaid
@@ -123,7 +123,7 @@ Layout: left = patient input (schema-driven form, presets, sliders for what-if w
 
 ## 6. Deliverables & docs
 
-- `docker-compose up` runs backend + frontend; `make train` reproduces artifacts (fixed seeds).
+- No Docker: run locally with `uv run uvicorn app.main:app` (backend) and `npm run dev` (frontend); `uv run python -m src.train` in `ml/` reproduces artifacts (fixed seeds).
 - Tests: leakage test, schema test, API contract test.
 - 6-page doc: data/preprocessing, models + validation, results table, explainability, 3D pipeline, usage.
 - Demo video (3-10 min) script: problem -> input patient -> live 3D update -> vessel click -> SHAP -> what-if -> metrics -> architecture.
@@ -139,7 +139,7 @@ Layout: left = patient input (schema-driven form, presets, sliders for what-if w
 ## Task checklist
 
 - [ ] Create README.md in repo root containing this plan, setup steps, licenses/attribution section
-- [ ] Scaffold monorepo: ml/ (uv, Python 3.12), backend/ (FastAPI), frontend/ (Vite React TS R3F), docker-compose
+- [ ] Scaffold monorepo: ml/ (uv, Python 3.12), backend/ (FastAPI), frontend/ (Vite React TS R3F), shared/ contracts
 - [ ] Download Z-Alizadeh Sani dataset, preprocess, EDA, feature_schema.json, leakage guard + test
 - [ ] Nested repeated CV model zoo (LogReg, RF, ET, XGB, LGBM, CatBoost, TabPFN) with Optuna, for CAD/LAD/LCX/RCA; compare independent vs classifier chain
 - [ ] Stacking ensemble + calibration + threshold tuning + bootstrap CIs; export artifacts and metrics.json + plots
