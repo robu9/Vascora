@@ -16,7 +16,8 @@ Full project plan: [plan.md](plan.md).
 | Shared contracts (`shared/`) | Feature schema (55 inputs) and target/vessel registry |
 | Backend (`backend/`) | FastAPI routes working, served by a **heuristic placeholder model** |
 | ML pipeline (`ml/`) | Not started; trained models will replace the placeholder |
-| Frontend / 3D (`frontend/`) | Not started |
+| Frontend / 3D (`frontend/`) | React heart viewer, sample patients, vessel selection and API risk overlay |
+| Anatomy (`assets-pipeline/`) | Z-Anatomy adaptation, editable Blender project, compressed GLB and validation scripts |
 
 ## Repository layout
 
@@ -59,6 +60,49 @@ Interactive API docs: http://localhost:8000/docs
 uv run pytest        # tests
 uv run ruff check .  # lint
 ```
+
+## Running the heart viewer
+
+Requires Node 22.12+ and npm. Start the backend above, then in a second terminal:
+
+```bash
+cd frontend
+npm ci
+npm run dev
+```
+
+Open http://127.0.0.1:5173. The viewer starts in anatomy mode. Choose one of the
+three sample patients to load vessel probabilities; select LAD, LCX or RCA on the
+model or in the results panel. Use the four camera presets, orbit/zoom/pan, labels,
+and the heartbeat pause control. Reduced-motion preferences pause the heartbeat.
+
+The frontend proxies `/api` to port 8000 locally. For a separately hosted API,
+copy `frontend/.env.example` to `frontend/.env` and set `VITE_API_BASE_URL` to its
+origin (without `/api`); configure backend `VASCORA_CORS_ORIGINS` for that frontend.
+The production build is in `frontend/dist`; deployment must supply the API origin
+at build time or reverse-proxy `/api` to the backend.
+
+```bash
+cd frontend
+npm test                  # mapping and asynchronous state tests
+npm run build             # TypeScript and production build
+npm run asset:validate    # names, materials, compression and budgets
+npx playwright install chromium
+npm run test:e2e           # starts local frontend/backend if needed
+```
+
+The viewer presents **representative educational anatomy** and the current
+**heuristic placeholder** estimates. Vessel colors do not show lesion position,
+narrowing severity, flow speed, or myocardial dysfunction. The illustrative
+heartbeat uses `pr` (75 bpm by default); it is not a physiological simulation.
+
+The model is adapted from Z-Anatomy / BodyParts3D. D1 and OM1 are representative
+branch assignments; the PDA is an authored right-dominant approximation because
+the source did not identify a PDA explicitly. Anatomy has not received clinical
+validation. See [asset reproduction and limitations](assets-pipeline/README.md),
+[credits and asset license](frontend/public/models/ATTRIBUTION.md), and
+[source provenance](assets-pipeline/provenance.json). Adapted model assets retain
+CC BY-SA 4.0 licensing. The source notice is preserved with the assets.
 
 ### Environment variables
 

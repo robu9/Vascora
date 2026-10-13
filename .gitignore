@@ -23,3 +23,9 @@ ml/artifacts/*.pkl
 .DS_Store
 Thumbs.db
 .env
+assets-pipeline/source/
+assets-pipeline/heart.raw.glb
+*.blend1
+*.tsbuildinfo
+frontend/test-results/
+frontend/playwright-report/

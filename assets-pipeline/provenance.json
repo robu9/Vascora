@@ -1,0 +1,309 @@
+{
+  "source_url": "https://raw.githubusercontent.com/Z-Anatomy/Models-of-human-anatomy/master/Z-Anatomy.zip",
+  "source_sha256": "e029688545627bd0214b269e1063143abb580aad72b2c2445d6d8a9a0d9da736",
+  "blender_version": "5.0.1",
+  "normalization": {
+    "source_center": [
+      0.022771788761019707,
+      -0.024976005777716637,
+      1.307121753692627
+    ],
+    "scale": 15.982590036860685,
+    "gltf_axes": "+X patient left; +Y superior; +Z anterior"
+  },
+  "meshes": {
+    "LAD_prox": [
+      [
+        "Anterior interventricular artery",
+        0,
+        0,
+        5
+      ]
+    ],
+    "LAD_mid": [
+      [
+        "Anterior interventricular artery",
+        0,
+        4,
+        9
+      ],
+      [
+        "Anterior interventricular artery",
+        4,
+        0,
+        null
+      ],
+      [
+        "Anterior interventricular artery",
+        5,
+        0,
+        null
+      ]
+    ],
+    "LAD_dist": [
+      [
+        "Anterior interventricular artery",
+        0,
+        8,
+        null
+      ],
+      [
+        "Anterior interventricular artery",
+        1,
+        0,
+        null
+      ]
+    ],
+    "D1": [
+      [
+        "Anterior interventricular artery",
+        2,
+        0,
+        null
+      ],
+      [
+        "Anterior interventricular artery",
+        3,
+        0,
+        null
+      ]
+    ],
+    "LCX_prox": [
+      [
+        "Circumflex artery of heart",
+        0,
+        0,
+        7
+      ]
+    ],
+    "LCX_mid": [
+      [
+        "Circumflex artery of heart",
+        0,
+        6,
+        14
+      ]
+    ],
+    "LCX_dist": [
+      [
+        "Circumflex artery of heart",
+        0,
+        13,
+        null
+      ],
+      [
+        "Circumflex artery of heart",
+        1,
+        0,
+        null
+      ],
+      [
+        "Circumflex artery of heart",
+        2,
+        0,
+        null
+      ],
+      [
+        "Circumflex artery of heart",
+        4,
+        0,
+        null
+      ],
+      [
+        "Circumflex artery of heart",
+        5,
+        0,
+        null
+      ]
+    ],
+    "OM1": [
+      [
+        "Circumflex artery of heart",
+        3,
+        0,
+        null
+      ]
+    ],
+    "RCA_prox": [
+      [
+        "Right coronary artery",
+        0,
+        0,
+        6
+      ],
+      [
+        "Right coronary artery",
+        9,
+        0,
+        null
+      ],
+      [
+        "Right coronary artery",
+        10,
+        0,
+        null
+      ],
+      [
+        "Right coronary artery",
+        11,
+        0,
+        null
+      ],
+      [
+        "Right coronary artery",
+        12,
+        0,
+        null
+      ],
+      [
+        "Right coronary artery",
+        13,
+        0,
+        null
+      ]
+    ],
+    "RCA_mid": [
+      [
+        "Right coronary artery",
+        0,
+        5,
+        11
+      ],
+      [
+        "Right coronary artery",
+        1,
+        0,
+        null
+      ],
+      [
+        "Right coronary artery",
+        2,
+        0,
+        null
+      ],
+      [
+        "Right coronary artery",
+        3,
+        0,
+        null
+      ],
+      [
+        "Right coronary artery",
+        4,
+        0,
+        null
+      ],
+      [
+        "Right coronary artery",
+        5,
+        0,
+        null
+      ],
+      [
+        "Right coronary artery",
+        6,
+        0,
+        null
+      ],
+      [
+        "Right coronary artery",
+        7,
+        0,
+        null
+      ],
+      [
+        "Right coronary artery",
+        8,
+        0,
+        null
+      ]
+    ],
+    "RCA_dist": [
+      [
+        "Right coronary artery",
+        0,
+        10,
+        null
+      ],
+      [
+        "Right inferolateral branch of right coronary artery",
+        0,
+        0,
+        null
+      ],
+      [
+        "Right inferolateral branch of right coronary artery",
+        1,
+        0,
+        null
+      ],
+      [
+        "Right inferolateral branch of right coronary artery",
+        2,
+        0,
+        null
+      ],
+      [
+        "Right inferolateral branch of right coronary artery",
+        3,
+        0,
+        null
+      ],
+      [
+        "Right inferolateral branch of right coronary artery",
+        4,
+        0,
+        null
+      ],
+      [
+        "Right inferolateral branch of right coronary artery",
+        5,
+        0,
+        null
+      ],
+      [
+        "Right inferolateral branch of right coronary artery",
+        6,
+        0,
+        null
+      ],
+      [
+        "Right inferolateral branch of right coronary artery",
+        7,
+        0,
+        null
+      ]
+    ],
+    "Left_main": [
+      [
+        "Left coronary artery",
+        0,
+        0,
+        null
+      ]
+    ],
+    "Aorta_root": [
+      [
+        "Ascending aorta",
+        0,
+        0,
+        null
+      ]
+    ],
+    "SVC_root": [
+      [
+        "Superior vena cava",
+        0,
+        0,
+        null
+      ]
+    ],
+    "PDA": "Authored representative right-dominant branch; source has no explicitly named PDA."
+  },
+  "anatomical_limitations": [
+    "Representative educational anatomy, not patient-specific.",
+    "Proximal/mid/distal divisions are visualization partitions, not standardized clinical lesion segments.",
+    "D1 and OM1 labels designate representative source branches; numbering is not clinically validated.",
+    "PDA is an authored surface-fitted right-dominant approximation; source does not explicitly identify a PDA."
+  ]
+}
