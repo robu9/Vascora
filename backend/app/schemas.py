@@ -62,6 +62,38 @@ class AnalyzeResponse(BaseModel):
     disclaimer: str = DISCLAIMER
 
 
+class CounterfactualChange(BaseModel):
+    key: str
+    label: str
+    category: str
+    unit: str | None = None
+    from_value: Any
+    to_value: Any
+    coupled: dict[str, Any] = Field(
+        description="Other features updated to keep the row consistent, e.g. weight with BMI."
+    )
+    probability: float = Field(description="Target probability after this change.")
+    delta: float = Field(description="probability − baseline. Negative lowers risk.")
+
+
+class CounterfactualResponse(BaseModel):
+    model: ModelInfo
+    target: str
+    baseline_probability: float
+    changes: list[CounterfactualChange] = Field(
+        description="Each modifiable feature moved to its normal range on its own."
+    )
+    combined: list[CounterfactualChange] = Field(
+        description="Greedy stack of those changes, best first. Probabilities are cumulative."
+    )
+    combined_probability: float
+    note: str | None = Field(
+        default=None,
+        description="Why there may be no hints, e.g. risk already near certainty.",
+    )
+    disclaimer: str = DISCLAIMER
+
+
 class SamplePatient(BaseModel):
     id: str
     name: str

@@ -22,3 +22,7 @@ class Predictor(Protocol):
     def explain(
         self, values: dict[str, Any], targets: list[str]
     ) -> dict[str, TargetExplanation]: ...
+
+    def predict_many(self, rows: list[dict[str, Any]], target: str) -> Any:
+        """Probabilities of `target` for each completed feature dict."""
+        ...

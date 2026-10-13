@@ -4,7 +4,7 @@
     "CAD": {
       "label": "Coronary Artery Disease",
       "column": "Cath",
-      "positive": "Cad",
+      "positive": "CAD",
       "kind": "overall"
     },
     "LAD": {

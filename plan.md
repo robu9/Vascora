@@ -6,7 +6,7 @@
 Vascora/
   README.md              # this plan + setup/usage (first deliverable)
   ml/                    # training pipeline (Python 3.12 via uv; 3.14 lacks wheels for shap/catboost)
-    data/                # raw xlsx from UCI (id 412) - gitignored, download script
+    data/                # raw xlsx from UCI (id 411) - gitignored, download script
     src/ (preprocess.py, features.py, models.py, train.py, evaluate.py, explain.py)
     artifacts/           # model .joblib, calibrators, metrics.json, shap background, feature_schema.json
     reports/             # ROC/PR/calibration plots for docs
@@ -140,10 +140,10 @@ Layout: left = patient input (schema-driven form, presets, sliders for what-if w
 
 - [ ] Create README.md in repo root containing this plan, setup steps, licenses/attribution section
 - [ ] Scaffold monorepo: ml/ (uv, Python 3.12), backend/ (FastAPI), frontend/ (Vite React TS R3F), shared/ contracts
-- [ ] Download Z-Alizadeh Sani dataset, preprocess, EDA, feature_schema.json, leakage guard + test
-- [ ] Nested repeated CV model zoo (LogReg, RF, ET, XGB, LGBM, CatBoost, TabPFN) with Optuna, for CAD/LAD/LCX/RCA; compare independent vs classifier chain
-- [ ] Stacking ensemble + calibration + threshold tuning + bootstrap CIs; export artifacts and metrics.json + plots
-- [ ] SHAP explainers per target with cached background, grouped categories, global importance, counterfactual hints
+- [x] Download Z-Alizadeh Sani dataset, preprocess, EDA, feature_schema.json, leakage guard + test
+- [x] Nested repeated CV model zoo (LogReg, SVM, RF, ET, XGB, LGBM, CatBoost) with Optuna, for CAD/LAD/LCX/RCA; compare independent vs classifier chain
+- [x] Soft-vote ensemble + calibration + threshold tuning + bootstrap CIs; export artifacts and metrics.json + plots
+- [x] SHAP explainers per target with cached background, grouped categories, global importance, counterfactual hints on modifiable features
 - [ ] FastAPI endpoints /schema /predict /explain /metrics /samples with Pydantic + model registry
 - [ ] Asset pipeline: Sketchfab CC-BY heart + Z-Anatomy coronaries/torso, align in Blender, segment-named meshes, gltf-transform compress + LOD
 - [ ] R3F scene: physical myocardium material, HDRI, AO/bloom/SMAA, heartbeat shader, coronary blood-flow shader, x-ray torso

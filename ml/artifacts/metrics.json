@@ -1,0 +1,4574 @@
+{
+  "generated_at": "2026-10-13T16:29:48+00:00",
+  "model_version": "1.0.0",
+  "dataset": {
+    "name": "Extension of Z-Alizadeh Sani (UCI id 411)",
+    "n_total": 303,
+    "n_dev": 242,
+    "n_test": 61,
+    "n_features": 55,
+    "excluded_from_features": [
+      "Cath",
+      "LAD",
+      "LCX",
+      "RCA"
+    ],
+    "prevalence": {
+      "CAD": 0.71074,
+      "LAD": 0.59091,
+      "LCX": 0.38017,
+      "RCA": 0.38017
+    }
+  },
+  "validation": {
+    "scheme": "3x repeated stratified 5-fold nested CV (Optuna TPE, 20 trials, inner 3-fold ROC-AUC) on the 242-patient dev set; untouched 61-patient stratified hold-out test set",
+    "test_ci": "stratified percentile bootstrap, 2000 resamples",
+    "config": {
+      "cv": {
+        "outer_splits": 5,
+        "outer_repeats": 3,
+        "inner_splits": 3,
+        "n_trials": 20,
+        "models": [
+          "logreg",
+          "svm",
+          "rf",
+          "et",
+          "xgb",
+          "lgbm",
+          "catboost"
+        ],
+        "seed": 42,
+        "n_jobs": -1
+      },
+      "top_k": 3,
+      "final_trials": 40,
+      "chain_models": [
+        "logreg",
+        "catboost"
+      ],
+      "chain_min_gain": 0.005,
+      "n_members": 10,
+      "n_boot": 2000,
+      "threshold_criterion": "f1",
+      "shap_permutations": 6
+    }
+  },
+  "metric_names": [
+    "accuracy",
+    "balanced_accuracy",
+    "precision",
+    "recall",
+    "specificity",
+    "f1",
+    "mcc",
+    "roc_auc",
+    "pr_auc",
+    "brier",
+    "log_loss"
+  ],
+  "targets": {
+    "CAD": {
+      "model": {
+        "type": "calibrated soft-vote ensemble",
+        "members": [
+          {
+            "name": "catboost",
+            "label": "CatBoost",
+            "params": {
+              "iterations": 300,
+              "learning_rate": 0.07166,
+              "depth": 2,
+              "l2_leaf_reg": 9.77045,
+              "random_strength": 1.51036
+            }
+          },
+          {
+            "name": "logreg",
+            "label": "Elastic-net Logistic Regression",
+            "params": {
+              "C": 0.05221,
+              "l1_ratio": 0.42623
+            }
+          },
+          {
+            "name": "et",
+            "label": "Extra Trees",
+            "params": {
+              "n_estimators": 300,
+              "max_depth": 10,
+              "min_samples_leaf": 1,
+              "max_features": 0.11418
+            }
+          }
+        ],
+        "chain_parents": [],
+        "calibration": "Platt (sigmoid), 5-fold out-of-fold",
+        "threshold": 0.505,
+        "threshold_criterion": "f1"
+      },
+      "test": {
+        "metrics": {
+          "accuracy": 0.7541,
+          "balanced_accuracy": 0.72126,
+          "precision": 0.85366,
+          "recall": 0.79545,
+          "specificity": 0.64706,
+          "f1": 0.82353,
+          "mcc": 0.42264,
+          "roc_auc": 0.84626,
+          "pr_auc": 0.94563,
+          "brier": 0.16738,
+          "log_loss": 0.53048
+        },
+        "ci95": {
+          "accuracy": [
+            0.63934,
+            0.85246
+          ],
+          "balanced_accuracy": [
+            0.58757,
+            0.8389
+          ],
+          "precision": [
+            0.77273,
+            0.93944
+          ],
+          "recall": [
+            0.68182,
+            0.90909
+          ],
+          "specificity": [
+            0.41176,
+            0.88235
+          ],
+          "f1": [
+            0.73684,
+            0.89888
+          ],
+          "mcc": [
+            0.16526,
+            0.6563
+          ],
+          "roc_auc": [
+            0.73797,
+            0.93182
+          ],
+          "pr_auc": [
+            0.90572,
+            0.97653
+          ],
+          "brier": [
+            0.1006,
+            0.24394
+          ],
+          "log_loss": [
+            0.3105,
+            0.7817
+          ]
+        },
+        "metrics_at_0_5": {
+          "accuracy": 0.7377,
+          "balanced_accuracy": 0.69184,
+          "precision": 0.83333,
+          "recall": 0.79545,
+          "specificity": 0.58824,
+          "f1": 0.81395,
+          "mcc": 0.37148,
+          "roc_auc": 0.84626,
+          "pr_auc": 0.94563,
+          "brier": 0.16738,
+          "log_loss": 0.53048
+        },
+        "youden_threshold": 0.505,
+        "metrics_at_youden": {
+          "accuracy": 0.7541,
+          "balanced_accuracy": 0.72126,
+          "precision": 0.85366,
+          "recall": 0.79545,
+          "specificity": 0.64706,
+          "f1": 0.82353,
+          "mcc": 0.42264,
+          "roc_auc": 0.84626,
+          "pr_auc": 0.94563,
+          "brier": 0.16738,
+          "log_loss": 0.53048
+        },
+        "curves": {
+          "roc": [
+            [
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0227
+            ],
+            [
+              0.0,
+              0.5909
+            ],
+            [
+              0.0588,
+              0.5909
+            ],
+            [
+              0.0588,
+              0.7273
+            ],
+            [
+              0.1765,
+              0.7273
+            ],
+            [
+              0.1765,
+              0.75
+            ],
+            [
+              0.2941,
+              0.75
+            ],
+            [
+              0.2941,
+              0.7955
+            ],
+            [
+              0.4118,
+              0.7955
+            ],
+            [
+              0.4118,
+              0.8182
+            ],
+            [
+              0.4706,
+              0.8182
+            ],
+            [
+              0.4706,
+              0.8864
+            ],
+            [
+              0.5882,
+              0.8864
+            ],
+            [
+              0.5882,
+              0.9091
+            ],
+            [
+              0.7059,
+              0.9091
+            ],
+            [
+              0.7059,
+              0.9318
+            ],
+            [
+              0.7647,
+              0.9318
+            ],
+            [
+              0.7647,
+              0.9773
+            ],
+            [
+              1.0,
+              0.9773
+            ],
+            [
+              1.0,
+              1.0
+            ]
+          ],
+          "pr": [
+            [
+              0.0,
+              1.0
+            ],
+            [
+              0.0227,
+              1.0
+            ],
+            [
+              0.0455,
+              1.0
+            ],
+            [
+              0.0682,
+              1.0
+            ],
+            [
+              0.0909,
+              1.0
+            ],
+            [
+              0.1136,
+              1.0
+            ],
+            [
+              0.1364,
+              1.0
+            ],
+            [
+              0.1591,
+              1.0
+            ],
+            [
+              0.1818,
+              1.0
+            ],
+            [
+              0.2045,
+              1.0
+            ],
+            [
+              0.2273,
+              1.0
+            ],
+            [
+              0.25,
+              1.0
+            ],
+            [
+              0.2727,
+              1.0
+            ],
+            [
+              0.2955,
+              1.0
+            ],
+            [
+              0.3182,
+              1.0
+            ],
+            [
+              0.3409,
+              1.0
+            ],
+            [
+              0.3636,
+              1.0
+            ],
+            [
+              0.3864,
+              1.0
+            ],
+            [
+              0.4091,
+              1.0
+            ],
+            [
+              0.4318,
+              1.0
+            ],
+            [
+              0.4545,
+              1.0
+            ],
+            [
+              0.4773,
+              1.0
+            ],
+            [
+              0.5,
+              1.0
+            ],
+            [
+              0.5227,
+              1.0
+            ],
+            [
+              0.5455,
+              1.0
+            ],
+            [
+              0.5682,
+              1.0
+            ],
+            [
+              0.5909,
+              1.0
+            ],
+            [
+              0.5909,
+              0.963
+            ],
+            [
+              0.6136,
+              0.9643
+            ],
+            [
+              0.6364,
+              0.9655
+            ],
+            [
+              0.6818,
+              0.9677
+            ],
+            [
+              0.7045,
+              0.9688
+            ],
+            [
+              0.7273,
+              0.9697
+            ],
+            [
+              0.7273,
+              0.9412
+            ],
+            [
+              0.7273,
+              0.9143
+            ],
+            [
+              0.75,
+              0.9167
+            ],
+            [
+              0.75,
+              0.8919
+            ],
+            [
+              0.75,
+              0.8684
+            ],
+            [
+              0.7727,
+              0.8718
+            ],
+            [
+              0.7955,
+              0.875
+            ],
+            [
+              0.7955,
+              0.8537
+            ],
+            [
+              0.7955,
+              0.8333
+            ],
+            [
+              0.8182,
+              0.8372
+            ],
+            [
+              0.8182,
+              0.8182
+            ],
+            [
+              0.8409,
+              0.8222
+            ],
+            [
+              0.8636,
+              0.8261
+            ],
+            [
+              0.8864,
+              0.8298
+            ],
+            [
+              0.8864,
+              0.8125
+            ],
+            [
+              0.8864,
+              0.7959
+            ],
+            [
+              0.9091,
+              0.8
+            ],
+            [
+              0.9091,
+              0.7843
+            ],
+            [
+              0.9091,
+              0.7692
+            ],
+            [
+              0.9318,
+              0.7736
+            ],
+            [
+              0.9318,
+              0.7593
+            ],
+            [
+              0.9545,
+              0.7636
+            ],
+            [
+              0.9773,
+              0.7679
+            ],
+            [
+              0.9773,
+              0.7544
+            ],
+            [
+              0.9773,
+              0.7414
+            ],
+            [
+              0.9773,
+              0.7288
+            ],
+            [
+              1.0,
+              0.7213
+            ]
+          ],
+          "calibration": [
+            [
+              0.0317,
+              0.375
+            ],
+            [
+              0.1379,
+              0.5
+            ],
+            [
+              0.4692,
+              0.5714
+            ],
+            [
+              0.7233,
+              0.5
+            ],
+            [
+              0.9248,
+              0.8571
+            ],
+            [
+              0.9734,
+              1.0
+            ],
+            [
+              0.9921,
+              1.0
+            ],
+            [
+              0.9982,
+              1.0
+            ]
+          ],
+          "confusion": {
+            "tn": 11,
+            "fp": 6,
+            "fn": 9,
+            "tp": 35
+          }
+        },
+        "baseline": {
+          "model": "Elastic-net Logistic Regression",
+          "metrics": {
+            "accuracy": 0.77049,
+            "balanced_accuracy": 0.73262,
+            "precision": 0.85714,
+            "recall": 0.81818,
+            "specificity": 0.64706,
+            "f1": 0.83721,
+            "mcc": 0.45043,
+            "roc_auc": 0.85695,
+            "pr_auc": 0.94976,
+            "brier": 0.14665,
+            "log_loss": 0.4311
+          },
+          "delong": {
+            "auc_a": 0.84626,
+            "auc_b": 0.85695,
+            "z": -0.83003,
+            "p_value": 0.40652
+          },
+          "mcnemar": {
+            "a_only_correct": 0,
+            "b_only_correct": 1,
+            "p_value": 1.0
+          }
+        },
+        "n": 61,
+        "prevalence": 0.72131
+      },
+      "dev_oof": {
+        "accuracy": 0.92562,
+        "balanced_accuracy": 0.90108,
+        "precision": 0.9375,
+        "recall": 0.9593,
+        "specificity": 0.84286,
+        "f1": 0.94828,
+        "mcc": 0.81667,
+        "roc_auc": 0.94676,
+        "pr_auc": 0.97149,
+        "brier": 0.06861,
+        "log_loss": 0.24692
+      },
+      "cv": {
+        "ensemble": {
+          "accuracy": {
+            "mean": 0.90351,
+            "std": 0.04251
+          },
+          "balanced_accuracy": {
+            "mean": 0.85464,
+            "std": 0.06039
+          },
+          "precision": {
+            "mean": 0.90203,
+            "std": 0.0384
+          },
+          "recall": {
+            "mean": 0.97109,
+            "std": 0.03079
+          },
+          "specificity": {
+            "mean": 0.73819,
+            "std": 0.10935
+          },
+          "f1": {
+            "mean": 0.93483,
+            "std": 0.02831
+          },
+          "mcc": {
+            "mean": 0.76034,
+            "std": 0.10988
+          },
+          "roc_auc": {
+            "mean": 0.95179,
+            "std": 0.02551
+          },
+          "pr_auc": {
+            "mean": 0.97955,
+            "std": 0.01135
+          },
+          "brier": {
+            "mean": 0.08372,
+            "std": 0.01877
+          },
+          "log_loss": {
+            "mean": 0.29166,
+            "std": 0.04752
+          }
+        },
+        "models": {
+          "catboost": {
+            "accuracy": {
+              "mean": 0.89799,
+              "std": 0.05223
+            },
+            "balanced_accuracy": {
+              "mean": 0.84485,
+              "std": 0.07384
+            },
+            "precision": {
+              "mean": 0.89579,
+              "std": 0.04453
+            },
+            "recall": {
+              "mean": 0.97097,
+              "std": 0.03079
+            },
+            "specificity": {
+              "mean": 0.71873,
+              "std": 0.12842
+            },
+            "f1": {
+              "mean": 0.9315,
+              "std": 0.03444
+            },
+            "mcc": {
+              "mean": 0.74367,
+              "std": 0.13736
+            },
+            "roc_auc": {
+              "mean": 0.95038,
+              "std": 0.02728
+            },
+            "pr_auc": {
+              "mean": 0.97896,
+              "std": 0.01307
+            },
+            "brier": {
+              "mean": 0.08192,
+              "std": 0.02277
+            },
+            "log_loss": {
+              "mean": 0.28297,
+              "std": 0.06989
+            }
+          },
+          "et": {
+            "accuracy": {
+              "mean": 0.89524,
+              "std": 0.04975
+            },
+            "balanced_accuracy": {
+              "mean": 0.84701,
+              "std": 0.07803
+            },
+            "precision": {
+              "mean": 0.90019,
+              "std": 0.05425
+            },
+            "recall": {
+              "mean": 0.96335,
+              "std": 0.03823
+            },
+            "specificity": {
+              "mean": 0.73067,
+              "std": 0.15912
+            },
+            "f1": {
+              "mean": 0.92935,
+              "std": 0.03206
+            },
+            "mcc": {
+              "mean": 0.7408,
+              "std": 0.13044
+            },
+            "roc_auc": {
+              "mean": 0.9424,
+              "std": 0.03172
+            },
+            "pr_auc": {
+              "mean": 0.97409,
+              "std": 0.01633
+            },
+            "brier": {
+              "mean": 0.09437,
+              "std": 0.02078
+            },
+            "log_loss": {
+              "mean": 0.32475,
+              "std": 0.05824
+            }
+          },
+          "lgbm": {
+            "accuracy": {
+              "mean": 0.90074,
+              "std": 0.04352
+            },
+            "balanced_accuracy": {
+              "mean": 0.85845,
+              "std": 0.06464
+            },
+            "precision": {
+              "mean": 0.90812,
+              "std": 0.04315
+            },
+            "recall": {
+              "mean": 0.95966,
+              "std": 0.03213
+            },
+            "specificity": {
+              "mean": 0.75724,
+              "std": 0.12138
+            },
+            "f1": {
+              "mean": 0.93251,
+              "std": 0.02851
+            },
+            "mcc": {
+              "mean": 0.75333,
+              "std": 0.11642
+            },
+            "roc_auc": {
+              "mean": 0.94009,
+              "std": 0.02579
+            },
+            "pr_auc": {
+              "mean": 0.97273,
+              "std": 0.01255
+            },
+            "brier": {
+              "mean": 0.08369,
+              "std": 0.0212
+            },
+            "log_loss": {
+              "mean": 0.28874,
+              "std": 0.04897
+            }
+          },
+          "logreg": {
+            "accuracy": {
+              "mean": 0.87177,
+              "std": 0.0691
+            },
+            "balanced_accuracy": {
+              "mean": 0.81309,
+              "std": 0.11602
+            },
+            "precision": {
+              "mean": 0.88419,
+              "std": 0.06964
+            },
+            "recall": {
+              "mean": 0.95141,
+              "std": 0.04429
+            },
+            "specificity": {
+              "mean": 0.67477,
+              "std": 0.23937
+            },
+            "f1": {
+              "mean": 0.91452,
+              "std": 0.04267
+            },
+            "mcc": {
+              "mean": 0.66274,
+              "std": 0.2259
+            },
+            "roc_auc": {
+              "mean": 0.94395,
+              "std": 0.0322
+            },
+            "pr_auc": {
+              "mean": 0.97535,
+              "std": 0.01548
+            },
+            "brier": {
+              "mean": 0.09461,
+              "std": 0.02926
+            },
+            "log_loss": {
+              "mean": 0.32258,
+              "std": 0.09057
+            }
+          },
+          "rf": {
+            "accuracy": {
+              "mean": 0.87316,
+              "std": 0.04412
+            },
+            "balanced_accuracy": {
+              "mean": 0.80073,
+              "std": 0.06584
+            },
+            "precision": {
+              "mean": 0.86684,
+              "std": 0.04107
+            },
+            "recall": {
+              "mean": 0.97299,
+              "std": 0.03145
+            },
+            "specificity": {
+              "mean": 0.62847,
+              "std": 0.1237
+            },
+            "f1": {
+              "mean": 0.91626,
+              "std": 0.02866
+            },
+            "mcc": {
+              "mean": 0.68108,
+              "std": 0.11886
+            },
+            "roc_auc": {
+              "mean": 0.93949,
+              "std": 0.03503
+            },
+            "pr_auc": {
+              "mean": 0.97161,
+              "std": 0.02027
+            },
+            "brier": {
+              "mean": 0.1109,
+              "std": 0.01251
+            },
+            "log_loss": {
+              "mean": 0.37287,
+              "std": 0.03097
+            }
+          },
+          "svm": {
+            "accuracy": {
+              "mean": 0.89257,
+              "std": 0.04057
+            },
+            "balanced_accuracy": {
+              "mean": 0.84847,
+              "std": 0.05807
+            },
+            "precision": {
+              "mean": 0.90277,
+              "std": 0.04054
+            },
+            "recall": {
+              "mean": 0.95366,
+              "std": 0.03889
+            },
+            "specificity": {
+              "mean": 0.74327,
+              "std": 0.11466
+            },
+            "f1": {
+              "mean": 0.92665,
+              "std": 0.0273
+            },
+            "mcc": {
+              "mean": 0.73489,
+              "std": 0.10488
+            },
+            "roc_auc": {
+              "mean": 0.93845,
+              "std": 0.0301
+            },
+            "pr_auc": {
+              "mean": 0.97266,
+              "std": 0.01438
+            },
+            "brier": {
+              "mean": 0.08574,
+              "std": 0.01854
+            },
+            "log_loss": {
+              "mean": 0.28851,
+              "std": 0.04859
+            }
+          },
+          "xgb": {
+            "accuracy": {
+              "mean": 0.8966,
+              "std": 0.04285
+            },
+            "balanced_accuracy": {
+              "mean": 0.85954,
+              "std": 0.05554
+            },
+            "precision": {
+              "mean": 0.91122,
+              "std": 0.03486
+            },
+            "recall": {
+              "mean": 0.94783,
+              "std": 0.03643
+            },
+            "specificity": {
+              "mean": 0.77126,
+              "std": 0.09376
+            },
+            "f1": {
+              "mean": 0.92876,
+              "std": 0.02937
+            },
+            "mcc": {
+              "mean": 0.74456,
+              "std": 0.10918
+            },
+            "roc_auc": {
+              "mean": 0.94164,
+              "std": 0.03145
+            },
+            "pr_auc": {
+              "mean": 0.97422,
+              "std": 0.01479
+            },
+            "brier": {
+              "mean": 0.08539,
+              "std": 0.02554
+            },
+            "log_loss": {
+              "mean": 0.29097,
+              "std": 0.06249
+            }
+          }
+        }
+      },
+      "chain": {
+        "auc_gain": 0.0,
+        "auc_gain_std": 0.0,
+        "use_chain": false
+      },
+      "global_importance": [
+        {
+          "key": "typical_chest_pain",
+          "label": "Typical Chest Pain",
+          "category": "symptoms",
+          "mean_abs_shap": 1.57953,
+          "mean_shap": -0.5371
+        },
+        {
+          "key": "age",
+          "label": "Age",
+          "category": "demographic",
+          "mean_abs_shap": 0.70461,
+          "mean_shap": 0.08988
+        },
+        {
+          "key": "region_rwma",
+          "label": "Regions with RWMA",
+          "category": "echo",
+          "mean_abs_shap": 0.57868,
+          "mean_shap": -0.19837
+        },
+        {
+          "key": "atypical",
+          "label": "Atypical Chest Pain",
+          "category": "symptoms",
+          "mean_abs_shap": 0.51873,
+          "mean_shap": 0.04997
+        },
+        {
+          "key": "htn",
+          "label": "Hypertension",
+          "category": "history",
+          "mean_abs_shap": 0.50555,
+          "mean_shap": 0.03112
+        },
+        {
+          "key": "t_inversion",
+          "label": "T Inversion",
+          "category": "ecg",
+          "mean_abs_shap": 0.48327,
+          "mean_shap": -0.02723
+        },
+        {
+          "key": "dm",
+          "label": "Diabetes Mellitus",
+          "category": "history",
+          "mean_abs_shap": 0.43429,
+          "mean_shap": -0.03582
+        },
+        {
+          "key": "st_depression",
+          "label": "ST Depression",
+          "category": "ecg",
+          "mean_abs_shap": 0.2776,
+          "mean_shap": -0.14754
+        },
+        {
+          "key": "tg",
+          "label": "Triglycerides",
+          "category": "labs",
+          "mean_abs_shap": 0.25247,
+          "mean_shap": -0.14718
+        },
+        {
+          "key": "ef_tte",
+          "label": "Ejection Fraction (TTE)",
+          "category": "echo",
+          "mean_abs_shap": 0.2439,
+          "mean_shap": 0.12665
+        },
+        {
+          "key": "sex",
+          "label": "Sex",
+          "category": "demographic",
+          "mean_abs_shap": 0.17027,
+          "mean_shap": 0.04474
+        },
+        {
+          "key": "nonanginal",
+          "label": "Non-anginal Chest Pain",
+          "category": "symptoms",
+          "mean_abs_shap": 0.15369,
+          "mean_shap": -0.15369
+        },
+        {
+          "key": "k",
+          "label": "Potassium",
+          "category": "labs",
+          "mean_abs_shap": 0.11615,
+          "mean_shap": 0.01344
+        },
+        {
+          "key": "bmi",
+          "label": "BMI",
+          "category": "demographic",
+          "mean_abs_shap": 0.10541,
+          "mean_shap": -0.02925
+        },
+        {
+          "key": "bp",
+          "label": "Systolic Blood Pressure",
+          "category": "vitals",
+          "mean_abs_shap": 0.08007,
+          "mean_shap": -0.01393
+        },
+        {
+          "key": "q_wave",
+          "label": "Q Wave",
+          "category": "ecg",
+          "mean_abs_shap": 0.06587,
+          "mean_shap": -0.01772
+        },
+        {
+          "key": "esr",
+          "label": "Erythrocyte Sedimentation Rate",
+          "category": "labs",
+          "mean_abs_shap": 0.06323,
+          "mean_shap": -0.02309
+        },
+        {
+          "key": "st_elevation",
+          "label": "ST Elevation",
+          "category": "ecg",
+          "mean_abs_shap": 0.06127,
+          "mean_shap": 0.00178
+        },
+        {
+          "key": "cr",
+          "label": "Creatinine",
+          "category": "labs",
+          "mean_abs_shap": 0.05548,
+          "mean_shap": 0.01307
+        },
+        {
+          "key": "lvh",
+          "label": "Left Ventricular Hypertrophy",
+          "category": "ecg",
+          "mean_abs_shap": 0.05379,
+          "mean_shap": -0.01053
+        },
+        {
+          "key": "dyspnea",
+          "label": "Dyspnea",
+          "category": "symptoms",
+          "mean_abs_shap": 0.05201,
+          "mean_shap": -0.0183
+        },
+        {
+          "key": "poor_r_progression",
+          "label": "Poor R-Wave Progression",
+          "category": "ecg",
+          "mean_abs_shap": 0.05175,
+          "mean_shap": -0.05175
+        },
+        {
+          "key": "current_smoker",
+          "label": "Current Smoker",
+          "category": "history",
+          "mean_abs_shap": 0.04344,
+          "mean_shap": -0.02554
+        },
+        {
+          "key": "fbs",
+          "label": "Fasting Blood Sugar",
+          "category": "labs",
+          "mean_abs_shap": 0.04211,
+          "mean_shap": -0.00281
+        },
+        {
+          "key": "neut",
+          "label": "Neutrophils",
+          "category": "labs",
+          "mean_abs_shap": 0.04073,
+          "mean_shap": -0.00432
+        }
+      ]
+    },
+    "LAD": {
+      "model": {
+        "type": "calibrated soft-vote ensemble",
+        "members": [
+          {
+            "name": "xgb",
+            "label": "XGBoost",
+            "params": {
+              "n_estimators": 200,
+              "learning_rate": 0.01191,
+              "max_depth": 6,
+              "min_child_weight": 8.13863,
+              "subsample": 0.98133,
+              "colsample_bytree": 0.88744,
+              "reg_lambda": 1.17516,
+              "reg_alpha": 0.60651
+            }
+          },
+          {
+            "name": "rf",
+            "label": "Random Forest",
+            "params": {
+              "n_estimators": 300,
+              "max_depth": 3,
+              "min_samples_leaf": 9,
+              "max_features": 0.10266
+            }
+          },
+          {
+            "name": "catboost",
+            "label": "CatBoost",
+            "params": {
+              "iterations": 100,
+              "learning_rate": 0.0119,
+              "depth": 6,
+              "l2_leaf_reg": 6.05437,
+              "random_strength": 1.59586
+            }
+          }
+        ],
+        "chain_parents": [],
+        "calibration": "Platt (sigmoid), 5-fold out-of-fold",
+        "threshold": 0.36,
+        "threshold_criterion": "f1"
+      },
+      "test": {
+        "metrics": {
+          "accuracy": 0.7541,
+          "balanced_accuracy": 0.74129,
+          "precision": 0.74359,
+          "recall": 0.85294,
+          "specificity": 0.62963,
+          "f1": 0.79452,
+          "mcc": 0.49916,
+          "roc_auc": 0.81046,
+          "pr_auc": 0.85532,
+          "brier": 0.19113,
+          "log_loss": 0.58615
+        },
+        "ci95": {
+          "accuracy": [
+            0.63934,
+            0.85246
+          ],
+          "balanced_accuracy": [
+            0.62691,
+            0.84858
+          ],
+          "precision": [
+            0.65116,
+            0.85294
+          ],
+          "recall": [
+            0.73529,
+            0.97059
+          ],
+          "specificity": [
+            0.44444,
+            0.81481
+          ],
+          "f1": [
+            0.70584,
+            0.87671
+          ],
+          "mcc": [
+            0.26404,
+            0.70536
+          ],
+          "roc_auc": [
+            0.69714,
+            0.91288
+          ],
+          "pr_auc": [
+            0.76659,
+            0.93361
+          ],
+          "brier": [
+            0.12396,
+            0.26033
+          ],
+          "log_loss": [
+            0.39574,
+            0.78403
+          ]
+        },
+        "metrics_at_0_5": {
+          "accuracy": 0.7377,
+          "balanced_accuracy": 0.73802,
+          "precision": 0.78125,
+          "recall": 0.73529,
+          "specificity": 0.74074,
+          "f1": 0.75758,
+          "mcc": 0.47346,
+          "roc_auc": 0.81046,
+          "pr_auc": 0.85532,
+          "brier": 0.19113,
+          "log_loss": 0.58615
+        },
+        "youden_threshold": 0.56,
+        "metrics_at_youden": {
+          "accuracy": 0.70492,
+          "balanced_accuracy": 0.70861,
+          "precision": 0.76667,
+          "recall": 0.67647,
+          "specificity": 0.74074,
+          "f1": 0.71875,
+          "mcc": 0.41451,
+          "roc_auc": 0.81046,
+          "pr_auc": 0.85532,
+          "brier": 0.19113,
+          "log_loss": 0.58615
+        },
+        "curves": {
+          "roc": [
+            [
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0294
+            ],
+            [
+              0.0,
+              0.3235
+            ],
+            [
+              0.037,
+              0.3235
+            ],
+            [
+              0.037,
+              0.4118
+            ],
+            [
+              0.0741,
+              0.4118
+            ],
+            [
+              0.0741,
+              0.4412
+            ],
+            [
+              0.1111,
+              0.4412
+            ],
+            [
+              0.1111,
+              0.5
+            ],
+            [
+              0.1481,
+              0.5
+            ],
+            [
+              0.1481,
+              0.5588
+            ],
+            [
+              0.1852,
+              0.5588
+            ],
+            [
+              0.1852,
+              0.5882
+            ],
+            [
+              0.2222,
+              0.5882
+            ],
+            [
+              0.2222,
+              0.6176
+            ],
+            [
+              0.2593,
+              0.6176
+            ],
+            [
+              0.2593,
+              0.7353
+            ],
+            [
+              0.2963,
+              0.7353
+            ],
+            [
+              0.2963,
+              0.7941
+            ],
+            [
+              0.3333,
+              0.7941
+            ],
+            [
+              0.3333,
+              0.8529
+            ],
+            [
+              0.4074,
+              0.8529
+            ],
+            [
+              0.4074,
+              0.9118
+            ],
+            [
+              0.4444,
+              0.9118
+            ],
+            [
+              0.4444,
+              0.9412
+            ],
+            [
+              0.8519,
+              0.9412
+            ],
+            [
+              0.8519,
+              0.9706
+            ],
+            [
+              0.9259,
+              0.9706
+            ],
+            [
+              0.9259,
+              1.0
+            ],
+            [
+              1.0,
+              1.0
+            ]
+          ],
+          "pr": [
+            [
+              0.0,
+              1.0
+            ],
+            [
+              0.0294,
+              1.0
+            ],
+            [
+              0.0588,
+              1.0
+            ],
+            [
+              0.0882,
+              1.0
+            ],
+            [
+              0.1176,
+              1.0
+            ],
+            [
+              0.1471,
+              1.0
+            ],
+            [
+              0.1765,
+              1.0
+            ],
+            [
+              0.2059,
+              1.0
+            ],
+            [
+              0.2353,
+              1.0
+            ],
+            [
+              0.2647,
+              1.0
+            ],
+            [
+              0.2941,
+              1.0
+            ],
+            [
+              0.3235,
+              1.0
+            ],
+            [
+              0.3235,
+              0.9167
+            ],
+            [
+              0.3529,
+              0.9231
+            ],
+            [
+              0.3824,
+              0.9286
+            ],
+            [
+              0.4118,
+              0.9333
+            ],
+            [
+              0.4118,
+              0.875
+            ],
+            [
+              0.4412,
+              0.8824
+            ],
+            [
+              0.4412,
+              0.8333
+            ],
+            [
+              0.4706,
+              0.8421
+            ],
+            [
+              0.5,
+              0.85
+            ],
+            [
+              0.5,
+              0.8095
+            ],
+            [
+              0.5294,
+              0.8182
+            ],
+            [
+              0.5588,
+              0.8261
+            ],
+            [
+              0.5588,
+              0.7917
+            ],
+            [
+              0.5882,
+              0.8
+            ],
+            [
+              0.5882,
+              0.7692
+            ],
+            [
+              0.6176,
+              0.7778
+            ],
+            [
+              0.6176,
+              0.75
+            ],
+            [
+              0.6471,
+              0.7586
+            ],
+            [
+              0.7059,
+              0.7742
+            ],
+            [
+              0.7353,
+              0.7812
+            ],
+            [
+              0.7353,
+              0.7576
+            ],
+            [
+              0.7647,
+              0.7647
+            ],
+            [
+              0.7941,
+              0.7714
+            ],
+            [
+              0.7941,
+              0.75
+            ],
+            [
+              0.8235,
+              0.7568
+            ],
+            [
+              0.8529,
+              0.7632
+            ],
+            [
+              0.8529,
+              0.7436
+            ],
+            [
+              0.8529,
+              0.725
+            ],
+            [
+              0.8824,
+              0.7317
+            ],
+            [
+              0.9118,
+              0.7381
+            ],
+            [
+              0.9118,
+              0.7209
+            ],
+            [
+              0.9412,
+              0.7273
+            ],
+            [
+              0.9412,
+              0.7111
+            ],
+            [
+              0.9412,
+              0.6957
+            ],
+            [
+              0.9412,
+              0.6809
+            ],
+            [
+              0.9412,
+              0.6667
+            ],
+            [
+              0.9412,
+              0.6531
+            ],
+            [
+              0.9412,
+              0.64
+            ],
+            [
+              0.9412,
+              0.6275
+            ],
+            [
+              0.9412,
+              0.6154
+            ],
+            [
+              0.9412,
+              0.6038
+            ],
+            [
+              0.9412,
+              0.5926
+            ],
+            [
+              0.9412,
+              0.5818
+            ],
+            [
+              0.9706,
+              0.5893
+            ],
+            [
+              0.9706,
+              0.5789
+            ],
+            [
+              0.9706,
+              0.569
+            ],
+            [
+              1.0,
+              0.5763
+            ],
+            [
+              1.0,
+              0.5574
+            ]
+          ],
+          "calibration": [
+            [
+              0.0521,
+              0.25
+            ],
+            [
+              0.1792,
+              0.0
+            ],
+            [
+              0.2868,
+              0.4286
+            ],
+            [
+              0.4635,
+              0.75
+            ],
+            [
+              0.7138,
+              0.5714
+            ],
+            [
+              0.8687,
+              0.625
+            ],
+            [
+              0.9342,
+              0.8571
+            ],
+            [
+              0.971,
+              1.0
+            ]
+          ],
+          "confusion": {
+            "tn": 17,
+            "fp": 10,
+            "fn": 5,
+            "tp": 29
+          }
+        },
+        "baseline": {
+          "model": "Elastic-net Logistic Regression",
+          "metrics": {
+            "accuracy": 0.7377,
+            "balanced_accuracy": 0.7342,
+            "precision": 0.76471,
+            "recall": 0.76471,
+            "specificity": 0.7037,
+            "f1": 0.76471,
+            "mcc": 0.46841,
+            "roc_auc": 0.7756,
+            "pr_auc": 0.8236,
+            "brier": 0.18904,
+            "log_loss": 0.55916
+          },
+          "delong": {
+            "auc_a": 0.81046,
+            "auc_b": 0.7756,
+            "z": 1.11332,
+            "p_value": 0.26557
+          },
+          "mcnemar": {
+            "a_only_correct": 3,
+            "b_only_correct": 2,
+            "p_value": 1.0
+          }
+        },
+        "n": 61,
+        "prevalence": 0.55738
+      },
+      "dev_oof": {
+        "accuracy": 0.81405,
+        "balanced_accuracy": 0.78205,
+        "precision": 0.77841,
+        "recall": 0.95804,
+        "specificity": 0.60606,
+        "f1": 0.85893,
+        "mcc": 0.62275,
+        "roc_auc": 0.86466,
+        "pr_auc": 0.88849,
+        "brier": 0.13969,
+        "log_loss": 0.44121
+      },
+      "cv": {
+        "ensemble": {
+          "accuracy": {
+            "mean": 0.7852,
+            "std": 0.03909
+          },
+          "balanced_accuracy": {
+            "mean": 0.76554,
+            "std": 0.03636
+          },
+          "precision": {
+            "mean": 0.77625,
+            "std": 0.0659
+          },
+          "recall": {
+            "mean": 0.903,
+            "std": 0.06049
+          },
+          "specificity": {
+            "mean": 0.62807,
+            "std": 0.08563
+          },
+          "f1": {
+            "mean": 0.83141,
+            "std": 0.0336
+          },
+          "mcc": {
+            "mean": 0.56269,
+            "std": 0.07539
+          },
+          "roc_auc": {
+            "mean": 0.86095,
+            "std": 0.03374
+          },
+          "pr_auc": {
+            "mean": 0.89266,
+            "std": 0.04086
+          },
+          "brier": {
+            "mean": 0.15633,
+            "std": 0.01915
+          },
+          "log_loss": {
+            "mean": 0.48411,
+            "std": 0.04494
+          }
+        },
+        "models": {
+          "catboost": {
+            "accuracy": {
+              "mean": 0.77418,
+              "std": 0.03477
+            },
+            "balanced_accuracy": {
+              "mean": 0.75394,
+              "std": 0.03417
+            },
+            "precision": {
+              "mean": 0.77187,
+              "std": 0.06021
+            },
+            "recall": {
+              "mean": 0.88334,
+              "std": 0.04992
+            },
+            "specificity": {
+              "mean": 0.62455,
+              "std": 0.08229
+            },
+            "f1": {
+              "mean": 0.82119,
+              "std": 0.03077
+            },
+            "mcc": {
+              "mean": 0.53325,
+              "std": 0.06516
+            },
+            "roc_auc": {
+              "mean": 0.85597,
+              "std": 0.02946
+            },
+            "pr_auc": {
+              "mean": 0.88939,
+              "std": 0.03745
+            },
+            "brier": {
+              "mean": 0.15882,
+              "std": 0.01945
+            },
+            "log_loss": {
+              "mean": 0.4887,
+              "std": 0.05528
+            }
+          },
+          "et": {
+            "accuracy": {
+              "mean": 0.79365,
+              "std": 0.05742
+            },
+            "balanced_accuracy": {
+              "mean": 0.77557,
+              "std": 0.05657
+            },
+            "precision": {
+              "mean": 0.7865,
+              "std": 0.08087
+            },
+            "recall": {
+              "mean": 0.90129,
+              "std": 0.05751
+            },
+            "specificity": {
+              "mean": 0.64985,
+              "std": 0.11624
+            },
+            "f1": {
+              "mean": 0.83657,
+              "std": 0.04838
+            },
+            "mcc": {
+              "mean": 0.57977,
+              "std": 0.10698
+            },
+            "roc_auc": {
+              "mean": 0.84859,
+              "std": 0.03982
+            },
+            "pr_auc": {
+              "mean": 0.8817,
+              "std": 0.04423
+            },
+            "brier": {
+              "mean": 0.16082,
+              "std": 0.02027
+            },
+            "log_loss": {
+              "mean": 0.49488,
+              "std": 0.04733
+            }
+          },
+          "lgbm": {
+            "accuracy": {
+              "mean": 0.77293,
+              "std": 0.04965
+            },
+            "balanced_accuracy": {
+              "mean": 0.7534,
+              "std": 0.04089
+            },
+            "precision": {
+              "mean": 0.77054,
+              "std": 0.0674
+            },
+            "recall": {
+              "mean": 0.87971,
+              "std": 0.07303
+            },
+            "specificity": {
+              "mean": 0.6271,
+              "std": 0.08196
+            },
+            "f1": {
+              "mean": 0.81838,
+              "std": 0.04697
+            },
+            "mcc": {
+              "mean": 0.53525,
+              "std": 0.09373
+            },
+            "roc_auc": {
+              "mean": 0.85534,
+              "std": 0.03924
+            },
+            "pr_auc": {
+              "mean": 0.8878,
+              "std": 0.04359
+            },
+            "brier": {
+              "mean": 0.16251,
+              "std": 0.01877
+            },
+            "log_loss": {
+              "mean": 0.50256,
+              "std": 0.05241
+            }
+          },
+          "logreg": {
+            "accuracy": {
+              "mean": 0.75493,
+              "std": 0.08621
+            },
+            "balanced_accuracy": {
+              "mean": 0.73321,
+              "std": 0.0991
+            },
+            "precision": {
+              "mean": 0.7599,
+              "std": 0.10567
+            },
+            "recall": {
+              "mean": 0.88798,
+              "std": 0.08292
+            },
+            "specificity": {
+              "mean": 0.57843,
+              "std": 0.23649
+            },
+            "f1": {
+              "mean": 0.8113,
+              "std": 0.05846
+            },
+            "mcc": {
+              "mean": 0.49568,
+              "std": 0.1846
+            },
+            "roc_auc": {
+              "mean": 0.84475,
+              "std": 0.03729
+            },
+            "pr_auc": {
+              "mean": 0.87871,
+              "std": 0.03617
+            },
+            "brier": {
+              "mean": 0.17278,
+              "std": 0.02679
+            },
+            "log_loss": {
+              "mean": 0.52005,
+              "std": 0.06356
+            }
+          },
+          "rf": {
+            "accuracy": {
+              "mean": 0.77976,
+              "std": 0.04894
+            },
+            "balanced_accuracy": {
+              "mean": 0.76063,
+              "std": 0.04392
+            },
+            "precision": {
+              "mean": 0.77477,
+              "std": 0.0693
+            },
+            "recall": {
+              "mean": 0.89312,
+              "std": 0.07335
+            },
+            "specificity": {
+              "mean": 0.62813,
+              "std": 0.09788
+            },
+            "f1": {
+              "mean": 0.82584,
+              "std": 0.04288
+            },
+            "mcc": {
+              "mean": 0.55273,
+              "std": 0.09161
+            },
+            "roc_auc": {
+              "mean": 0.85617,
+              "std": 0.04082
+            },
+            "pr_auc": {
+              "mean": 0.88532,
+              "std": 0.04578
+            },
+            "brier": {
+              "mean": 0.16217,
+              "std": 0.01851
+            },
+            "log_loss": {
+              "mean": 0.50011,
+              "std": 0.04216
+            }
+          },
+          "svm": {
+            "accuracy": {
+              "mean": 0.8032,
+              "std": 0.05724
+            },
+            "balanced_accuracy": {
+              "mean": 0.78838,
+              "std": 0.05514
+            },
+            "precision": {
+              "mean": 0.80087,
+              "std": 0.06877
+            },
+            "recall": {
+              "mean": 0.89279,
+              "std": 0.07246
+            },
+            "specificity": {
+              "mean": 0.68397,
+              "std": 0.0897
+            },
+            "f1": {
+              "mean": 0.84136,
+              "std": 0.04919
+            },
+            "mcc": {
+              "mean": 0.59797,
+              "std": 0.11677
+            },
+            "roc_auc": {
+              "mean": 0.84606,
+              "std": 0.04169
+            },
+            "pr_auc": {
+              "mean": 0.87741,
+              "std": 0.0449
+            },
+            "brier": {
+              "mean": 0.15597,
+              "std": 0.02132
+            },
+            "log_loss": {
+              "mean": 0.48018,
+              "std": 0.05144
+            }
+          },
+          "xgb": {
+            "accuracy": {
+              "mean": 0.77421,
+              "std": 0.04328
+            },
+            "balanced_accuracy": {
+              "mean": 0.75492,
+              "std": 0.04283
+            },
+            "precision": {
+              "mean": 0.77099,
+              "std": 0.06634
+            },
+            "recall": {
+              "mean": 0.88607,
+              "std": 0.06016
+            },
+            "specificity": {
+              "mean": 0.62377,
+              "std": 0.08677
+            },
+            "f1": {
+              "mean": 0.82146,
+              "std": 0.0376
+            },
+            "mcc": {
+              "mean": 0.5363,
+              "std": 0.08714
+            },
+            "roc_auc": {
+              "mean": 0.85846,
+              "std": 0.03607
+            },
+            "pr_auc": {
+              "mean": 0.88957,
+              "std": 0.04304
+            },
+            "brier": {
+              "mean": 0.15826,
+              "std": 0.02415
+            },
+            "log_loss": {
+              "mean": 0.48921,
+              "std": 0.06078
+            }
+          }
+        }
+      },
+      "chain": {
+        "auc_gain": 0.0044,
+        "auc_gain_std": 0.01829,
+        "use_chain": false
+      },
+      "global_importance": [
+        {
+          "key": "typical_chest_pain",
+          "label": "Typical Chest Pain",
+          "category": "symptoms",
+          "mean_abs_shap": 1.12903,
+          "mean_shap": -0.35892
+        },
+        {
+          "key": "ef_tte",
+          "label": "Ejection Fraction (TTE)",
+          "category": "echo",
+          "mean_abs_shap": 0.68431,
+          "mean_shap": 0.35134
+        },
+        {
+          "key": "region_rwma",
+          "label": "Regions with RWMA",
+          "category": "echo",
+          "mean_abs_shap": 0.50106,
+          "mean_shap": -0.15727
+        },
+        {
+          "key": "age",
+          "label": "Age",
+          "category": "demographic",
+          "mean_abs_shap": 0.44817,
+          "mean_shap": -0.00863
+        },
+        {
+          "key": "atypical",
+          "label": "Atypical Chest Pain",
+          "category": "symptoms",
+          "mean_abs_shap": 0.19489,
+          "mean_shap": 0.03538
+        },
+        {
+          "key": "t_inversion",
+          "label": "T Inversion",
+          "category": "ecg",
+          "mean_abs_shap": 0.17769,
+          "mean_shap": -0.00318
+        },
+        {
+          "key": "tg",
+          "label": "Triglycerides",
+          "category": "labs",
+          "mean_abs_shap": 0.1443,
+          "mean_shap": -0.08345
+        },
+        {
+          "key": "st_depression",
+          "label": "ST Depression",
+          "category": "ecg",
+          "mean_abs_shap": 0.14324,
+          "mean_shap": -0.07924
+        },
+        {
+          "key": "htn",
+          "label": "Hypertension",
+          "category": "history",
+          "mean_abs_shap": 0.11003,
+          "mean_shap": 0.01984
+        },
+        {
+          "key": "esr",
+          "label": "Erythrocyte Sedimentation Rate",
+          "category": "labs",
+          "mean_abs_shap": 0.08833,
+          "mean_shap": -0.03368
+        },
+        {
+          "key": "hdl",
+          "label": "HDL Cholesterol",
+          "category": "labs",
+          "mean_abs_shap": 0.08512,
+          "mean_shap": -0.00223
+        },
+        {
+          "key": "ldl",
+          "label": "LDL Cholesterol",
+          "category": "labs",
+          "mean_abs_shap": 0.08454,
+          "mean_shap": -0.04457
+        },
+        {
+          "key": "lymph",
+          "label": "Lymphocytes",
+          "category": "labs",
+          "mean_abs_shap": 0.06942,
+          "mean_shap": -0.00024
+        },
+        {
+          "key": "bp",
+          "label": "Systolic Blood Pressure",
+          "category": "vitals",
+          "mean_abs_shap": 0.06692,
+          "mean_shap": -0.00526
+        },
+        {
+          "key": "neut",
+          "label": "Neutrophils",
+          "category": "labs",
+          "mean_abs_shap": 0.05918,
+          "mean_shap": 0.00809
+        },
+        {
+          "key": "bmi",
+          "label": "BMI",
+          "category": "demographic",
+          "mean_abs_shap": 0.0524,
+          "mean_shap": -0.00371
+        },
+        {
+          "key": "sex",
+          "label": "Sex",
+          "category": "demographic",
+          "mean_abs_shap": 0.03634,
+          "mean_shap": 0.01202
+        },
+        {
+          "key": "poor_r_progression",
+          "label": "Poor R-Wave Progression",
+          "category": "ecg",
+          "mean_abs_shap": 0.03394,
+          "mean_shap": -0.03394
+        },
+        {
+          "key": "pr",
+          "label": "Pulse Rate",
+          "category": "vitals",
+          "mean_abs_shap": 0.03353,
+          "mean_shap": 0.00214
+        },
+        {
+          "key": "lvh",
+          "label": "Left Ventricular Hypertrophy",
+          "category": "ecg",
+          "mean_abs_shap": 0.03289,
+          "mean_shap": -0.00655
+        },
+        {
+          "key": "wbc",
+          "label": "White Blood Cells",
+          "category": "labs",
+          "mean_abs_shap": 0.03117,
+          "mean_shap": -0.01416
+        },
+        {
+          "key": "q_wave",
+          "label": "Q Wave",
+          "category": "ecg",
+          "mean_abs_shap": 0.02808,
+          "mean_shap": -0.01333
+        },
+        {
+          "key": "dm",
+          "label": "Diabetes Mellitus",
+          "category": "history",
+          "mean_abs_shap": 0.02774,
+          "mean_shap": -0.00691
+        },
+        {
+          "key": "st_elevation",
+          "label": "ST Elevation",
+          "category": "ecg",
+          "mean_abs_shap": 0.02233,
+          "mean_shap": 0.00111
+        },
+        {
+          "key": "vhd",
+          "label": "Valvular Heart Disease",
+          "category": "echo",
+          "mean_abs_shap": 0.02068,
+          "mean_shap": 0.0055
+        }
+      ]
+    },
+    "LCX": {
+      "model": {
+        "type": "calibrated soft-vote ensemble",
+        "members": [
+          {
+            "name": "xgb",
+            "label": "XGBoost",
+            "params": {
+              "n_estimators": 400,
+              "learning_rate": 0.0174,
+              "max_depth": 6,
+              "min_child_weight": 5.95844,
+              "subsample": 0.96975,
+              "colsample_bytree": 0.92638,
+              "reg_lambda": 0.24638,
+              "reg_alpha": 2.57031
+            }
+          },
+          {
+            "name": "rf",
+            "label": "Random Forest",
+            "params": {
+              "n_estimators": 200,
+              "max_depth": 9,
+              "min_samples_leaf": 5,
+              "max_features": 0.27474
+            }
+          },
+          {
+            "name": "lgbm",
+            "label": "LightGBM",
+            "params": {
+              "n_estimators": 450,
+              "learning_rate": 0.01663,
+              "num_leaves": 11,
+              "min_child_samples": 15,
+              "subsample": 0.73184,
+              "colsample_bytree": 0.98997,
+              "reg_lambda": 0.76366
+            }
+          }
+        ],
+        "chain_parents": [
+          "CAD",
+          "LAD"
+        ],
+        "calibration": "Platt (sigmoid), 5-fold out-of-fold",
+        "threshold": 0.27,
+        "threshold_criterion": "f1"
+      },
+      "test": {
+        "metrics": {
+          "accuracy": 0.70492,
+          "balanced_accuracy": 0.71242,
+          "precision": 0.63636,
+          "recall": 0.77778,
+          "specificity": 0.64706,
+          "f1": 0.7,
+          "mcc": 0.42346,
+          "roc_auc": 0.7549,
+          "pr_auc": 0.70094,
+          "brier": 0.20511,
+          "log_loss": 0.60122
+        },
+        "ci95": {
+          "accuracy": [
+            0.59016,
+            0.80369
+          ],
+          "balanced_accuracy": [
+            0.59749,
+            0.81917
+          ],
+          "precision": [
+            0.52941,
+            0.75862
+          ],
+          "recall": [
+            0.59259,
+            0.92593
+          ],
+          "specificity": [
+            0.47059,
+            0.79412
+          ],
+          "f1": [
+            0.58065,
+            0.80645
+          ],
+          "mcc": [
+            0.19608,
+            0.63627
+          ],
+          "roc_auc": [
+            0.62851,
+            0.87037
+          ],
+          "pr_auc": [
+            0.5591,
+            0.84066
+          ],
+          "brier": [
+            0.15476,
+            0.25921
+          ],
+          "log_loss": [
+            0.47458,
+            0.73861
+          ]
+        },
+        "metrics_at_0_5": {
+          "accuracy": 0.68852,
+          "balanced_accuracy": 0.67484,
+          "precision": 0.68182,
+          "recall": 0.55556,
+          "specificity": 0.79412,
+          "f1": 0.61224,
+          "mcc": 0.36169,
+          "roc_auc": 0.7549,
+          "pr_auc": 0.70094,
+          "brier": 0.20511,
+          "log_loss": 0.60122
+        },
+        "youden_threshold": 0.345,
+        "metrics_at_youden": {
+          "accuracy": 0.68852,
+          "balanced_accuracy": 0.6939,
+          "precision": 0.625,
+          "recall": 0.74074,
+          "specificity": 0.64706,
+          "f1": 0.67797,
+          "mcc": 0.3857,
+          "roc_auc": 0.7549,
+          "pr_auc": 0.70094,
+          "brier": 0.20511,
+          "log_loss": 0.60122
+        },
+        "curves": {
+          "roc": [
+            [
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.037
+            ],
+            [
+              0.0,
+              0.1111
+            ],
+            [
+              0.0294,
+              0.1111
+            ],
+            [
+              0.0294,
+              0.1852
+            ],
+            [
+              0.0588,
+              0.1852
+            ],
+            [
+              0.0588,
+              0.2222
+            ],
+            [
+              0.0882,
+              0.2222
+            ],
+            [
+              0.0882,
+              0.2593
+            ],
+            [
+              0.1471,
+              0.2593
+            ],
+            [
+              0.1471,
+              0.5556
+            ],
+            [
+              0.2059,
+              0.5556
+            ],
+            [
+              0.2059,
+              0.5926
+            ],
+            [
+              0.2353,
+              0.5926
+            ],
+            [
+              0.2353,
+              0.6296
+            ],
+            [
+              0.2647,
+              0.6296
+            ],
+            [
+              0.2647,
+              0.6667
+            ],
+            [
+              0.2941,
+              0.6667
+            ],
+            [
+              0.2941,
+              0.7037
+            ],
+            [
+              0.3529,
+              0.7037
+            ],
+            [
+              0.3529,
+              0.7778
+            ],
+            [
+              0.4118,
+              0.7778
+            ],
+            [
+              0.4118,
+              0.8519
+            ],
+            [
+              0.4706,
+              0.8519
+            ],
+            [
+              0.4706,
+              0.8889
+            ],
+            [
+              0.6765,
+              0.8889
+            ],
+            [
+              0.6765,
+              0.9259
+            ],
+            [
+              0.7059,
+              0.9259
+            ],
+            [
+              0.7059,
+              0.963
+            ],
+            [
+              0.8529,
+              0.963
+            ],
+            [
+              0.8529,
+              1.0
+            ],
+            [
+              1.0,
+              1.0
+            ]
+          ],
+          "pr": [
+            [
+              0.0,
+              1.0
+            ],
+            [
+              0.037,
+              1.0
+            ],
+            [
+              0.0741,
+              1.0
+            ],
+            [
+              0.1111,
+              1.0
+            ],
+            [
+              0.1111,
+              0.75
+            ],
+            [
+              0.1481,
+              0.8
+            ],
+            [
+              0.1852,
+              0.8333
+            ],
+            [
+              0.1852,
+              0.7143
+            ],
+            [
+              0.2222,
+              0.75
+            ],
+            [
+              0.2222,
+              0.6667
+            ],
+            [
+              0.2593,
+              0.7
+            ],
+            [
+              0.2593,
+              0.6364
+            ],
+            [
+              0.2593,
+              0.5833
+            ],
+            [
+              0.2963,
+              0.6154
+            ],
+            [
+              0.3333,
+              0.6429
+            ],
+            [
+              0.3704,
+              0.6667
+            ],
+            [
+              0.4074,
+              0.6875
+            ],
+            [
+              0.4444,
+              0.7059
+            ],
+            [
+              0.4815,
+              0.7222
+            ],
+            [
+              0.5185,
+              0.7368
+            ],
+            [
+              0.5556,
+              0.75
+            ],
+            [
+              0.5556,
+              0.7143
+            ],
+            [
+              0.5556,
+              0.6818
+            ],
+            [
+              0.5926,
+              0.6957
+            ],
+            [
+              0.5926,
+              0.6667
+            ],
+            [
+              0.6296,
+              0.68
+            ],
+            [
+              0.6296,
+              0.6538
+            ],
+            [
+              0.6667,
+              0.6667
+            ],
+            [
+              0.6667,
+              0.6429
+            ],
+            [
+              0.7037,
+              0.6552
+            ],
+            [
+              0.7037,
+              0.6129
+            ],
+            [
+              0.7407,
+              0.625
+            ],
+            [
+              0.7778,
+              0.6364
+            ],
+            [
+              0.7778,
+              0.6176
+            ],
+            [
+              0.7778,
+              0.6
+            ],
+            [
+              0.8148,
+              0.6111
+            ],
+            [
+              0.8519,
+              0.6216
+            ],
+            [
+              0.8519,
+              0.6053
+            ],
+            [
+              0.8519,
+              0.5897
+            ],
+            [
+              0.8889,
+              0.6
+            ],
+            [
+              0.8889,
+              0.5854
+            ],
+            [
+              0.8889,
+              0.5714
+            ],
+            [
+              0.8889,
+              0.5581
+            ],
+            [
+              0.8889,
+              0.5455
+            ],
+            [
+              0.8889,
+              0.5333
+            ],
+            [
+              0.8889,
+              0.5217
+            ],
+            [
+              0.8889,
+              0.5106
+            ],
+            [
+              0.9259,
+              0.5208
+            ],
+            [
+              0.9259,
+              0.5102
+            ],
+            [
+              0.963,
+              0.52
+            ],
+            [
+              0.963,
+              0.5098
+            ],
+            [
+              0.963,
+              0.5
+            ],
+            [
+              0.963,
+              0.4906
+            ],
+            [
+              0.963,
+              0.4815
+            ],
+            [
+              0.963,
+              0.4727
+            ],
+            [
+              1.0,
+              0.4821
+            ],
+            [
+              1.0,
+              0.4737
+            ],
+            [
+              1.0,
+              0.4655
+            ],
+            [
+              1.0,
+              0.4576
+            ],
+            [
+              1.0,
+              0.4426
+            ]
+          ],
+          "calibration": [
+            [
+              0.063,
+              0.125
+            ],
+            [
+              0.099,
+              0.25
+            ],
+            [
+              0.1925,
+              0.1429
+            ],
+            [
+              0.2863,
+              0.5
+            ],
+            [
+              0.4149,
+              0.4286
+            ],
+            [
+              0.5535,
+              0.75
+            ],
+            [
+              0.627,
+              0.5714
+            ],
+            [
+              0.7451,
+              0.75
+            ]
+          ],
+          "confusion": {
+            "tn": 22,
+            "fp": 12,
+            "fn": 6,
+            "tp": 21
+          }
+        },
+        "baseline": {
+          "model": "Elastic-net Logistic Regression",
+          "metrics": {
+            "accuracy": 0.65574,
+            "balanced_accuracy": 0.63017,
+            "precision": 0.6875,
+            "recall": 0.40741,
+            "specificity": 0.85294,
+            "f1": 0.51163,
+            "mcc": 0.29397,
+            "roc_auc": 0.72004,
+            "pr_auc": 0.68177,
+            "brier": 0.221,
+            "log_loss": 0.63617
+          },
+          "delong": {
+            "auc_a": 0.7549,
+            "auc_b": 0.72004,
+            "z": 0.92532,
+            "p_value": 0.3548
+          },
+          "mcnemar": {
+            "a_only_correct": 10,
+            "b_only_correct": 7,
+            "p_value": 0.62906
+          }
+        },
+        "n": 61,
+        "prevalence": 0.44262
+      },
+      "dev_oof": {
+        "accuracy": 0.63636,
+        "balanced_accuracy": 0.68565,
+        "precision": 0.5125,
+        "recall": 0.8913,
+        "specificity": 0.48,
+        "f1": 0.65079,
+        "mcc": 0.38081,
+        "roc_auc": 0.73043,
+        "pr_auc": 0.55736,
+        "brier": 0.20067,
+        "log_loss": 0.57612
+      },
+      "cv": {
+        "ensemble": {
+          "accuracy": {
+            "mean": 0.67055,
+            "std": 0.0495
+          },
+          "balanced_accuracy": {
+            "mean": 0.62489,
+            "std": 0.04814
+          },
+          "precision": {
+            "mean": 0.59493,
+            "std": 0.07587
+          },
+          "recall": {
+            "mean": 0.43293,
+            "std": 0.10159
+          },
+          "specificity": {
+            "mean": 0.81684,
+            "std": 0.06826
+          },
+          "f1": {
+            "mean": 0.49506,
+            "std": 0.08275
+          },
+          "mcc": {
+            "mean": 0.27168,
+            "std": 0.10067
+          },
+          "roc_auc": {
+            "mean": 0.71107,
+            "std": 0.05321
+          },
+          "pr_auc": {
+            "mean": 0.57561,
+            "std": 0.05456
+          },
+          "brier": {
+            "mean": 0.21063,
+            "std": 0.01905
+          },
+          "log_loss": {
+            "mean": 0.6107,
+            "std": 0.04772
+          }
+        },
+        "models": {
+          "catboost": {
+            "accuracy": {
+              "mean": 0.64858,
+              "std": 0.06441
+            },
+            "balanced_accuracy": {
+              "mean": 0.59094,
+              "std": 0.07654
+            },
+            "precision": {
+              "mean": 0.49699,
+              "std": 0.22842
+            },
+            "recall": {
+              "mean": 0.3507,
+              "std": 0.1913
+            },
+            "specificity": {
+              "mean": 0.83118,
+              "std": 0.10683
+            },
+            "f1": {
+              "mean": 0.40093,
+              "std": 0.19424
+            },
+            "mcc": {
+              "mean": 0.1969,
+              "std": 0.16956
+            },
+            "roc_auc": {
+              "mean": 0.70049,
+              "std": 0.06766
+            },
+            "pr_auc": {
+              "mean": 0.58356,
+              "std": 0.07548
+            },
+            "brier": {
+              "mean": 0.2193,
+              "std": 0.02864
+            },
+            "log_loss": {
+              "mean": 0.6466,
+              "std": 0.0904
+            }
+          },
+          "et": {
+            "accuracy": {
+              "mean": 0.61964,
+              "std": 0.06495
+            },
+            "balanced_accuracy": {
+              "mean": 0.55414,
+              "std": 0.0482
+            },
+            "precision": {
+              "mean": 0.55278,
+              "std": 0.16675
+            },
+            "recall": {
+              "mean": 0.27537,
+              "std": 0.10685
+            },
+            "specificity": {
+              "mean": 0.83292,
+              "std": 0.11598
+            },
+            "f1": {
+              "mean": 0.34588,
+              "std": 0.0906
+            },
+            "mcc": {
+              "mean": 0.1448,
+              "std": 0.12294
+            },
+            "roc_auc": {
+              "mean": 0.67248,
+              "std": 0.06609
+            },
+            "pr_auc": {
+              "mean": 0.52202,
+              "std": 0.06513
+            },
+            "brier": {
+              "mean": 0.21717,
+              "std": 0.01668
+            },
+            "log_loss": {
+              "mean": 0.6169,
+              "std": 0.037
+            }
+          },
+          "lgbm": {
+            "accuracy": {
+              "mean": 0.66783,
+              "std": 0.04315
+            },
+            "balanced_accuracy": {
+              "mean": 0.62294,
+              "std": 0.05193
+            },
+            "precision": {
+              "mean": 0.58548,
+              "std": 0.07266
+            },
+            "recall": {
+              "mean": 0.43507,
+              "std": 0.13841
+            },
+            "specificity": {
+              "mean": 0.8108,
+              "std": 0.07502
+            },
+            "f1": {
+              "mean": 0.48786,
+              "std": 0.10618
+            },
+            "mcc": {
+              "mean": 0.26569,
+              "std": 0.10042
+            },
+            "roc_auc": {
+              "mean": 0.70091,
+              "std": 0.04693
+            },
+            "pr_auc": {
+              "mean": 0.5723,
+              "std": 0.05624
+            },
+            "brier": {
+              "mean": 0.23281,
+              "std": 0.03142
+            },
+            "log_loss": {
+              "mean": 0.78474,
+              "std": 0.22942
+            }
+          },
+          "logreg": {
+            "accuracy": {
+              "mean": 0.6322,
+              "std": 0.0409
+            },
+            "balanced_accuracy": {
+              "mean": 0.57317,
+              "std": 0.05839
+            },
+            "precision": {
+              "mean": 0.47118,
+              "std": 0.23681
+            },
+            "recall": {
+              "mean": 0.30632,
+              "std": 0.21246
+            },
+            "specificity": {
+              "mean": 0.84003,
+              "std": 0.10549
+            },
+            "f1": {
+              "mean": 0.34318,
+              "std": 0.19883
+            },
+            "mcc": {
+              "mean": 0.16369,
+              "std": 0.11965
+            },
+            "roc_auc": {
+              "mean": 0.69046,
+              "std": 0.0567
+            },
+            "pr_auc": {
+              "mean": 0.57106,
+              "std": 0.06712
+            },
+            "brier": {
+              "mean": 0.22058,
+              "std": 0.01518
+            },
+            "log_loss": {
+              "mean": 0.63597,
+              "std": 0.0547
+            }
+          },
+          "rf": {
+            "accuracy": {
+              "mean": 0.64028,
+              "std": 0.04901
+            },
+            "balanced_accuracy": {
+              "mean": 0.57807,
+              "std": 0.04767
+            },
+            "precision": {
+              "mean": 0.55939,
+              "std": 0.11665
+            },
+            "recall": {
+              "mean": 0.31394,
+              "std": 0.09345
+            },
+            "specificity": {
+              "mean": 0.84219,
+              "std": 0.05937
+            },
+            "f1": {
+              "mean": 0.39398,
+              "std": 0.07936
+            },
+            "mcc": {
+              "mean": 0.18662,
+              "std": 0.10966
+            },
+            "roc_auc": {
+              "mean": 0.70226,
+              "std": 0.04877
+            },
+            "pr_auc": {
+              "mean": 0.55869,
+              "std": 0.0634
+            },
+            "brier": {
+              "mean": 0.2115,
+              "std": 0.01277
+            },
+            "log_loss": {
+              "mean": 0.60802,
+              "std": 0.02787
+            }
+          },
+          "svm": {
+            "accuracy": {
+              "mean": 0.64045,
+              "std": 0.02846
+            },
+            "balanced_accuracy": {
+              "mean": 0.56907,
+              "std": 0.02899
+            },
+            "precision": {
+              "mean": 0.57649,
+              "std": 0.10249
+            },
+            "recall": {
+              "mean": 0.27112,
+              "std": 0.09737
+            },
+            "specificity": {
+              "mean": 0.86701,
+              "std": 0.07056
+            },
+            "f1": {
+              "mean": 0.35442,
+              "std": 0.08845
+            },
+            "mcc": {
+              "mean": 0.17804,
+              "std": 0.06636
+            },
+            "roc_auc": {
+              "mean": 0.66615,
+              "std": 0.06176
+            },
+            "pr_auc": {
+              "mean": 0.5611,
+              "std": 0.07472
+            },
+            "brier": {
+              "mean": 0.22042,
+              "std": 0.01232
+            },
+            "log_loss": {
+              "mean": 0.63138,
+              "std": 0.02853
+            }
+          },
+          "xgb": {
+            "accuracy": {
+              "mean": 0.668,
+              "std": 0.03732
+            },
+            "balanced_accuracy": {
+              "mean": 0.61874,
+              "std": 0.04795
+            },
+            "precision": {
+              "mean": 0.58624,
+              "std": 0.07483
+            },
+            "recall": {
+              "mean": 0.4133,
+              "std": 0.12458
+            },
+            "specificity": {
+              "mean": 0.82419,
+              "std": 0.05627
+            },
+            "f1": {
+              "mean": 0.47568,
+              "std": 0.10757
+            },
+            "mcc": {
+              "mean": 0.2589,
+              "std": 0.09529
+            },
+            "roc_auc": {
+              "mean": 0.71141,
+              "std": 0.05252
+            },
+            "pr_auc": {
+              "mean": 0.5814,
+              "std": 0.05756
+            },
+            "brier": {
+              "mean": 0.21886,
+              "std": 0.02466
+            },
+            "log_loss": {
+              "mean": 0.66475,
+              "std": 0.10632
+            }
+          }
+        }
+      },
+      "chain": {
+        "auc_gain": 0.01709,
+        "auc_gain_std": 0.02623,
+        "use_chain": true
+      },
+      "global_importance": [
+        {
+          "key": "age",
+          "label": "Age",
+          "category": "demographic",
+          "mean_abs_shap": 0.39246,
+          "mean_shap": -0.01057
+        },
+        {
+          "key": "typical_chest_pain",
+          "label": "Typical Chest Pain",
+          "category": "symptoms",
+          "mean_abs_shap": 0.35883,
+          "mean_shap": -0.09894
+        },
+        {
+          "key": "tg",
+          "label": "Triglycerides",
+          "category": "labs",
+          "mean_abs_shap": 0.23813,
+          "mean_shap": -0.14713
+        },
+        {
+          "key": "cr",
+          "label": "Creatinine",
+          "category": "labs",
+          "mean_abs_shap": 0.20177,
+          "mean_shap": 0.06551
+        },
+        {
+          "key": "na",
+          "label": "Sodium",
+          "category": "labs",
+          "mean_abs_shap": 0.15903,
+          "mean_shap": -0.03585
+        },
+        {
+          "key": "plt",
+          "label": "Platelets",
+          "category": "labs",
+          "mean_abs_shap": 0.13533,
+          "mean_shap": 0.01393
+        },
+        {
+          "key": "ef_tte",
+          "label": "Ejection Fraction (TTE)",
+          "category": "echo",
+          "mean_abs_shap": 0.12155,
+          "mean_shap": 0.05531
+        },
+        {
+          "key": "region_rwma",
+          "label": "Regions with RWMA",
+          "category": "echo",
+          "mean_abs_shap": 0.10968,
+          "mean_shap": -0.0172
+        },
+        {
+          "key": "bmi",
+          "label": "BMI",
+          "category": "demographic",
+          "mean_abs_shap": 0.10283,
+          "mean_shap": 0.00371
+        },
+        {
+          "key": "height",
+          "label": "Height",
+          "category": "demographic",
+          "mean_abs_shap": 0.10215,
+          "mean_shap": 0.03853
+        },
+        {
+          "key": "esr",
+          "label": "Erythrocyte Sedimentation Rate",
+          "category": "labs",
+          "mean_abs_shap": 0.08481,
+          "mean_shap": -0.01918
+        },
+        {
+          "key": "sex",
+          "label": "Sex",
+          "category": "demographic",
+          "mean_abs_shap": 0.08152,
+          "mean_shap": 0.02605
+        },
+        {
+          "key": "ldl",
+          "label": "LDL Cholesterol",
+          "category": "labs",
+          "mean_abs_shap": 0.07894,
+          "mean_shap": -0.02835
+        },
+        {
+          "key": "t_inversion",
+          "label": "T Inversion",
+          "category": "ecg",
+          "mean_abs_shap": 0.07346,
+          "mean_shap": 0.00098
+        },
+        {
+          "key": "fbs",
+          "label": "Fasting Blood Sugar",
+          "category": "labs",
+          "mean_abs_shap": 0.06863,
+          "mean_shap": 0.00503
+        },
+        {
+          "key": "htn",
+          "label": "Hypertension",
+          "category": "history",
+          "mean_abs_shap": 0.06861,
+          "mean_shap": 0.01256
+        },
+        {
+          "key": "hdl",
+          "label": "HDL Cholesterol",
+          "category": "labs",
+          "mean_abs_shap": 0.06389,
+          "mean_shap": 0.01798
+        },
+        {
+          "key": "wbc",
+          "label": "White Blood Cells",
+          "category": "labs",
+          "mean_abs_shap": 0.06057,
+          "mean_shap": 0.00957
+        },
+        {
+          "key": "atypical",
+          "label": "Atypical Chest Pain",
+          "category": "symptoms",
+          "mean_abs_shap": 0.05238,
+          "mean_shap": 0.00888
+        },
+        {
+          "key": "k",
+          "label": "Potassium",
+          "category": "labs",
+          "mean_abs_shap": 0.05153,
+          "mean_shap": 0.00809
+        },
+        {
+          "key": "hb",
+          "label": "Hemoglobin",
+          "category": "labs",
+          "mean_abs_shap": 0.05071,
+          "mean_shap": -0.01336
+        },
+        {
+          "key": "weight",
+          "label": "Weight",
+          "category": "demographic",
+          "mean_abs_shap": 0.04411,
+          "mean_shap": -0.0102
+        },
+        {
+          "key": "st_depression",
+          "label": "ST Depression",
+          "category": "ecg",
+          "mean_abs_shap": 0.04234,
+          "mean_shap": -0.01939
+        },
+        {
+          "key": "dm",
+          "label": "Diabetes Mellitus",
+          "category": "history",
+          "mean_abs_shap": 0.04102,
+          "mean_shap": -0.00844
+        },
+        {
+          "key": "bun",
+          "label": "Blood Urea Nitrogen",
+          "category": "labs",
+          "mean_abs_shap": 0.03703,
+          "mean_shap": 0.00231
+        }
+      ]
+    },
+    "RCA": {
+      "model": {
+        "type": "calibrated soft-vote ensemble",
+        "members": [
+          {
+            "name": "et",
+            "label": "Extra Trees",
+            "params": {
+              "n_estimators": 400,
+              "max_depth": 12,
+              "min_samples_leaf": 10,
+              "max_features": 0.17081
+            }
+          },
+          {
+            "name": "logreg",
+            "label": "Elastic-net Logistic Regression",
+            "params": {
+              "C": 0.00246,
+              "l1_ratio": 0.00125
+            }
+          },
+          {
+            "name": "svm",
+            "label": "SVM (RBF, Platt)",
+            "params": {
+              "C": 0.01292,
+              "gamma": 0.00011
+            }
+          }
+        ],
+        "chain_parents": [
+          "CAD",
+          "LAD",
+          "LCX"
+        ],
+        "calibration": "Platt (sigmoid), 5-fold out-of-fold",
+        "threshold": 0.305,
+        "threshold_criterion": "f1"
+      },
+      "test": {
+        "metrics": {
+          "accuracy": 0.60656,
+          "balanced_accuracy": 0.61305,
+          "precision": 0.46667,
+          "recall": 0.63636,
+          "specificity": 0.58974,
+          "f1": 0.53846,
+          "mcc": 0.21718,
+          "roc_auc": 0.68881,
+          "pr_auc": 0.59968,
+          "brier": 0.22046,
+          "log_loss": 0.63464
+        },
+        "ci95": {
+          "accuracy": [
+            0.47541,
+            0.72131
+          ],
+          "balanced_accuracy": [
+            0.48077,
+            0.73252
+          ],
+          "precision": [
+            0.34375,
+            0.59259
+          ],
+          "recall": [
+            0.45455,
+            0.81818
+          ],
+          "specificity": [
+            0.4359,
+            0.74359
+          ],
+          "f1": [
+            0.39216,
+            0.66667
+          ],
+          "mcc": [
+            -0.03698,
+            0.44752
+          ],
+          "roc_auc": [
+            0.55012,
+            0.80886
+          ],
+          "pr_auc": [
+            0.43907,
+            0.75642
+          ],
+          "brier": [
+            0.16834,
+            0.27705
+          ],
+          "log_loss": [
+            0.50575,
+            0.78319
+          ]
+        },
+        "metrics_at_0_5": {
+          "accuracy": 0.63934,
+          "balanced_accuracy": 0.58916,
+          "precision": 0.5,
+          "recall": 0.40909,
+          "specificity": 0.76923,
+          "f1": 0.45,
+          "mcc": 0.18775,
+          "roc_auc": 0.68881,
+          "pr_auc": 0.59968,
+          "brier": 0.22046,
+          "log_loss": 0.63464
+        },
+        "youden_threshold": 0.305,
+        "metrics_at_youden": {
+          "accuracy": 0.60656,
+          "balanced_accuracy": 0.61305,
+          "precision": 0.46667,
+          "recall": 0.63636,
+          "specificity": 0.58974,
+          "f1": 0.53846,
+          "mcc": 0.21718,
+          "roc_auc": 0.68881,
+          "pr_auc": 0.59968,
+          "brier": 0.22046,
+          "log_loss": 0.63464
+        },
+        "curves": {
+          "roc": [
+            [
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0455
+            ],
+            [
+              0.0,
+              0.1818
+            ],
+            [
+              0.0769,
+              0.1818
+            ],
+            [
+              0.0769,
+              0.3182
+            ],
+            [
+              0.1795,
+              0.3182
+            ],
+            [
+              0.1795,
+              0.4091
+            ],
+            [
+              0.2308,
+              0.4091
+            ],
+            [
+              0.2308,
+              0.4545
+            ],
+            [
+              0.2821,
+              0.4545
+            ],
+            [
+              0.2821,
+              0.5
+            ],
+            [
+              0.3077,
+              0.5
+            ],
+            [
+              0.3077,
+              0.5909
+            ],
+            [
+              0.359,
+              0.5909
+            ],
+            [
+              0.359,
+              0.6364
+            ],
+            [
+              0.4615,
+              0.6364
+            ],
+            [
+              0.4615,
+              0.6818
+            ],
+            [
+              0.4872,
+              0.6818
+            ],
+            [
+              0.4872,
+              0.7273
+            ],
+            [
+              0.5385,
+              0.7273
+            ],
+            [
+              0.5385,
+              0.7727
+            ],
+            [
+              0.5897,
+              0.7727
+            ],
+            [
+              0.5897,
+              0.9091
+            ],
+            [
+              0.7179,
+              0.9091
+            ],
+            [
+              0.7179,
+              0.9545
+            ],
+            [
+              0.7949,
+              0.9545
+            ],
+            [
+              0.7949,
+              1.0
+            ],
+            [
+              1.0,
+              1.0
+            ]
+          ],
+          "pr": [
+            [
+              0.0,
+              1.0
+            ],
+            [
+              0.0455,
+              1.0
+            ],
+            [
+              0.0909,
+              1.0
+            ],
+            [
+              0.1364,
+              1.0
+            ],
+            [
+              0.1818,
+              1.0
+            ],
+            [
+              0.1818,
+              0.8
+            ],
+            [
+              0.1818,
+              0.6667
+            ],
+            [
+              0.1818,
+              0.5714
+            ],
+            [
+              0.2273,
+              0.625
+            ],
+            [
+              0.2727,
+              0.6667
+            ],
+            [
+              0.3182,
+              0.7
+            ],
+            [
+              0.3182,
+              0.6364
+            ],
+            [
+              0.3182,
+              0.5833
+            ],
+            [
+              0.3182,
+              0.5385
+            ],
+            [
+              0.3182,
+              0.5
+            ],
+            [
+              0.3636,
+              0.5333
+            ],
+            [
+              0.4091,
+              0.5625
+            ],
+            [
+              0.4091,
+              0.5294
+            ],
+            [
+              0.4091,
+              0.5
+            ],
+            [
+              0.4545,
+              0.5263
+            ],
+            [
+              0.4545,
+              0.5
+            ],
+            [
+              0.4545,
+              0.4762
+            ],
+            [
+              0.5,
+              0.5
+            ],
+            [
+              0.5,
+              0.4783
+            ],
+            [
+              0.5455,
+              0.5
+            ],
+            [
+              0.5909,
+              0.52
+            ],
+            [
+              0.5909,
+              0.5
+            ],
+            [
+              0.5909,
+              0.4815
+            ],
+            [
+              0.6364,
+              0.5
+            ],
+            [
+              0.6364,
+              0.4828
+            ],
+            [
+              0.6364,
+              0.4516
+            ],
+            [
+              0.6364,
+              0.4375
+            ],
+            [
+              0.6818,
+              0.4545
+            ],
+            [
+              0.6818,
+              0.4412
+            ],
+            [
+              0.7273,
+              0.4571
+            ],
+            [
+              0.7273,
+              0.4444
+            ],
+            [
+              0.7273,
+              0.4324
+            ],
+            [
+              0.7727,
+              0.4474
+            ],
+            [
+              0.7727,
+              0.4359
+            ],
+            [
+              0.7727,
+              0.425
+            ],
+            [
+              0.8182,
+              0.439
+            ],
+            [
+              0.8636,
+              0.4524
+            ],
+            [
+              0.9091,
+              0.4651
+            ],
+            [
+              0.9091,
+              0.4545
+            ],
+            [
+              0.9091,
+              0.4444
+            ],
+            [
+              0.9091,
+              0.4348
+            ],
+            [
+              0.9091,
+              0.4255
+            ],
+            [
+              0.9091,
+              0.4167
+            ],
+            [
+              0.9545,
+              0.4286
+            ],
+            [
+              0.9545,
+              0.42
+            ],
+            [
+              0.9545,
+              0.4118
+            ],
+            [
+              0.9545,
+              0.4038
+            ],
+            [
+              1.0,
+              0.4151
+            ],
+            [
+              1.0,
+              0.4074
+            ],
+            [
+              1.0,
+              0.4
+            ],
+            [
+              1.0,
+              0.3929
+            ],
+            [
+              1.0,
+              0.386
+            ],
+            [
+              1.0,
+              0.3793
+            ],
+            [
+              1.0,
+              0.3729
+            ],
+            [
+              1.0,
+              0.3607
+            ]
+          ],
+          "calibration": [
+            [
+              0.0381,
+              0.0
+            ],
+            [
+              0.0881,
+              0.25
+            ],
+            [
+              0.1696,
+              0.4286
+            ],
+            [
+              0.2757,
+              0.375
+            ],
+            [
+              0.3793,
+              0.4286
+            ],
+            [
+              0.4856,
+              0.375
+            ],
+            [
+              0.6313,
+              0.4286
+            ],
+            [
+              0.7909,
+              0.625
+            ]
+          ],
+          "confusion": {
+            "tn": 23,
+            "fp": 16,
+            "fn": 8,
+            "tp": 14
+          }
+        },
+        "baseline": {
+          "model": "Elastic-net Logistic Regression",
+          "metrics": {
+            "accuracy": 0.68852,
+            "balanced_accuracy": 0.63753,
+            "precision": 0.58824,
+            "recall": 0.45455,
+            "specificity": 0.82051,
+            "f1": 0.51282,
+            "mcc": 0.29459,
+            "roc_auc": 0.7296,
+            "pr_auc": 0.64192,
+            "brier": 0.19842,
+            "log_loss": 0.57044
+          },
+          "delong": {
+            "auc_a": 0.68881,
+            "auc_b": 0.7296,
+            "z": -1.62389,
+            "p_value": 0.1044
+          },
+          "mcnemar": {
+            "a_only_correct": 4,
+            "b_only_correct": 9,
+            "p_value": 0.26685
+          }
+        },
+        "n": 61,
+        "prevalence": 0.36066
+      },
+      "dev_oof": {
+        "accuracy": 0.67769,
+        "balanced_accuracy": 0.71688,
+        "precision": 0.5473,
+        "recall": 0.88043,
+        "specificity": 0.55333,
+        "f1": 0.675,
+        "mcc": 0.43202,
+        "roc_auc": 0.76891,
+        "pr_auc": 0.64364,
+        "brier": 0.18806,
+        "log_loss": 0.54773
+      },
+      "cv": {
+        "ensemble": {
+          "accuracy": {
+            "mean": 0.66528,
+            "std": 0.04349
+          },
+          "balanced_accuracy": {
+            "mean": 0.60785,
+            "std": 0.04048
+          },
+          "precision": {
+            "mean": 0.62263,
+            "std": 0.15312
+          },
+          "recall": {
+            "mean": 0.36095,
+            "std": 0.0775
+          },
+          "specificity": {
+            "mean": 0.85474,
+            "std": 0.07041
+          },
+          "f1": {
+            "mean": 0.44602,
+            "std": 0.07456
+          },
+          "mcc": {
+            "mean": 0.25586,
+            "std": 0.10478
+          },
+          "roc_auc": {
+            "mean": 0.75072,
+            "std": 0.04204
+          },
+          "pr_auc": {
+            "mean": 0.62812,
+            "std": 0.10107
+          },
+          "brier": {
+            "mean": 0.20041,
+            "std": 0.00746
+          },
+          "log_loss": {
+            "mean": 0.58285,
+            "std": 0.01634
+          }
+        },
+        "models": {
+          "catboost": {
+            "accuracy": {
+              "mean": 0.6818,
+              "std": 0.04588
+            },
+            "balanced_accuracy": {
+              "mean": 0.61282,
+              "std": 0.05214
+            },
+            "precision": {
+              "mean": 0.6839,
+              "std": 0.14945
+            },
+            "recall": {
+              "mean": 0.32022,
+              "std": 0.11862
+            },
+            "specificity": {
+              "mean": 0.90541,
+              "std": 0.04865
+            },
+            "f1": {
+              "mean": 0.42101,
+              "std": 0.1257
+            },
+            "mcc": {
+              "mean": 0.28383,
+              "std": 0.11056
+            },
+            "roc_auc": {
+              "mean": 0.7124,
+              "std": 0.0455
+            },
+            "pr_auc": {
+              "mean": 0.60949,
+              "std": 0.10058
+            },
+            "brier": {
+              "mean": 0.20852,
+              "std": 0.01382
+            },
+            "log_loss": {
+              "mean": 0.60351,
+              "std": 0.0298
+            }
+          },
+          "et": {
+            "accuracy": {
+              "mean": 0.66548,
+              "std": 0.05055
+            },
+            "balanced_accuracy": {
+              "mean": 0.60147,
+              "std": 0.04659
+            },
+            "precision": {
+              "mean": 0.63506,
+              "std": 0.15691
+            },
+            "recall": {
+              "mean": 0.32851,
+              "std": 0.09511
+            },
+            "specificity": {
+              "mean": 0.87443,
+              "std": 0.06997
+            },
+            "f1": {
+              "mean": 0.42128,
+              "std": 0.09164
+            },
+            "mcc": {
+              "mean": 0.25082,
+              "std": 0.1194
+            },
+            "roc_auc": {
+              "mean": 0.74726,
+              "std": 0.0447
+            },
+            "pr_auc": {
+              "mean": 0.62149,
+              "std": 0.09554
+            },
+            "brier": {
+              "mean": 0.20122,
+              "std": 0.00941
+            },
+            "log_loss": {
+              "mean": 0.58335,
+              "std": 0.02312
+            }
+          },
+          "lgbm": {
+            "accuracy": {
+              "mean": 0.66122,
+              "std": 0.05561
+            },
+            "balanced_accuracy": {
+              "mean": 0.60434,
+              "std": 0.05788
+            },
+            "precision": {
+              "mean": 0.6303,
+              "std": 0.16752
+            },
+            "recall": {
+              "mean": 0.36128,
+              "std": 0.12964
+            },
+            "specificity": {
+              "mean": 0.84739,
+              "std": 0.08888
+            },
+            "f1": {
+              "mean": 0.43543,
+              "std": 0.11841
+            },
+            "mcc": {
+              "mean": 0.24988,
+              "std": 0.12238
+            },
+            "roc_auc": {
+              "mean": 0.69969,
+              "std": 0.06999
+            },
+            "pr_auc": {
+              "mean": 0.58785,
+              "std": 0.10766
+            },
+            "brier": {
+              "mean": 0.21766,
+              "std": 0.02703
+            },
+            "log_loss": {
+              "mean": 0.63257,
+              "std": 0.07402
+            }
+          },
+          "logreg": {
+            "accuracy": {
+              "mean": 0.65434,
+              "std": 0.05335
+            },
+            "balanced_accuracy": {
+              "mean": 0.58725,
+              "std": 0.06261
+            },
+            "precision": {
+              "mean": 0.56164,
+              "std": 0.20118
+            },
+            "recall": {
+              "mean": 0.30017,
+              "std": 0.17658
+            },
+            "specificity": {
+              "mean": 0.87432,
+              "std": 0.08827
+            },
+            "f1": {
+              "mean": 0.36766,
+              "std": 0.17981
+            },
+            "mcc": {
+              "mean": 0.21068,
+              "std": 0.13413
+            },
+            "roc_auc": {
+              "mean": 0.74628,
+              "std": 0.04521
+            },
+            "pr_auc": {
+              "mean": 0.63075,
+              "std": 0.10184
+            },
+            "brier": {
+              "mean": 0.20659,
+              "std": 0.0137
+            },
+            "log_loss": {
+              "mean": 0.60186,
+              "std": 0.03778
+            }
+          },
+          "rf": {
+            "accuracy": {
+              "mean": 0.66672,
+              "std": 0.05127
+            },
+            "balanced_accuracy": {
+              "mean": 0.59534,
+              "std": 0.05083
+            },
+            "precision": {
+              "mean": 0.63164,
+              "std": 0.10977
+            },
+            "recall": {
+              "mean": 0.29228,
+              "std": 0.10109
+            },
+            "specificity": {
+              "mean": 0.8984,
+              "std": 0.03592
+            },
+            "f1": {
+              "mean": 0.39188,
+              "std": 0.11156
+            },
+            "mcc": {
+              "mean": 0.24017,
+              "std": 0.11243
+            },
+            "roc_auc": {
+              "mean": 0.70702,
+              "std": 0.05617
+            },
+            "pr_auc": {
+              "mean": 0.60507,
+              "std": 0.09394
+            },
+            "brier": {
+              "mean": 0.20935,
+              "std": 0.01153
+            },
+            "log_loss": {
+              "mean": 0.60527,
+              "std": 0.02452
+            }
+          },
+          "svm": {
+            "accuracy": {
+              "mean": 0.64725,
+              "std": 0.05009
+            },
+            "balanced_accuracy": {
+              "mean": 0.59335,
+              "std": 0.05832
+            },
+            "precision": {
+              "mean": 0.5549,
+              "std": 0.14103
+            },
+            "recall": {
+              "mean": 0.35781,
+              "std": 0.11136
+            },
+            "specificity": {
+              "mean": 0.8289,
+              "std": 0.05674
+            },
+            "f1": {
+              "mean": 0.42706,
+              "std": 0.11409
+            },
+            "mcc": {
+              "mean": 0.20854,
+              "std": 0.13434
+            },
+            "roc_auc": {
+              "mean": 0.72347,
+              "std": 0.04326
+            },
+            "pr_auc": {
+              "mean": 0.60019,
+              "std": 0.09954
+            },
+            "brier": {
+              "mean": 0.20635,
+              "std": 0.01162
+            },
+            "log_loss": {
+              "mean": 0.59724,
+              "std": 0.02566
+            }
+          },
+          "xgb": {
+            "accuracy": {
+              "mean": 0.6682,
+              "std": 0.05249
+            },
+            "balanced_accuracy": {
+              "mean": 0.62158,
+              "std": 0.05783
+            },
+            "precision": {
+              "mean": 0.60106,
+              "std": 0.11943
+            },
+            "recall": {
+              "mean": 0.4152,
+              "std": 0.12776
+            },
+            "specificity": {
+              "mean": 0.82795,
+              "std": 0.07085
+            },
+            "f1": {
+              "mean": 0.47764,
+              "std": 0.10378
+            },
+            "mcc": {
+              "mean": 0.26835,
+              "std": 0.11943
+            },
+            "roc_auc": {
+              "mean": 0.71601,
+              "std": 0.06385
+            },
+            "pr_auc": {
+              "mean": 0.60661,
+              "std": 0.10984
+            },
+            "brier": {
+              "mean": 0.21323,
+              "std": 0.01884
+            },
+            "log_loss": {
+              "mean": 0.61826,
+              "std": 0.04689
+            }
+          }
+        }
+      },
+      "chain": {
+        "auc_gain": 0.01849,
+        "auc_gain_std": 0.03032,
+        "use_chain": true
+      },
+      "global_importance": [
+        {
+          "key": "typical_chest_pain",
+          "label": "Typical Chest Pain",
+          "category": "symptoms",
+          "mean_abs_shap": 0.41691,
+          "mean_shap": -0.12579
+        },
+        {
+          "key": "dm",
+          "label": "Diabetes Mellitus",
+          "category": "history",
+          "mean_abs_shap": 0.32354,
+          "mean_shap": -0.01868
+        },
+        {
+          "key": "age",
+          "label": "Age",
+          "category": "demographic",
+          "mean_abs_shap": 0.28988,
+          "mean_shap": 0.04864
+        },
+        {
+          "key": "atypical",
+          "label": "Atypical Chest Pain",
+          "category": "symptoms",
+          "mean_abs_shap": 0.1597,
+          "mean_shap": 0.02964
+        },
+        {
+          "key": "tg",
+          "label": "Triglycerides",
+          "category": "labs",
+          "mean_abs_shap": 0.15144,
+          "mean_shap": -0.08055
+        },
+        {
+          "key": "sex",
+          "label": "Sex",
+          "category": "demographic",
+          "mean_abs_shap": 0.1507,
+          "mean_shap": 0.04834
+        },
+        {
+          "key": "htn",
+          "label": "Hypertension",
+          "category": "history",
+          "mean_abs_shap": 0.14367,
+          "mean_shap": 0.02108
+        },
+        {
+          "key": "lymph",
+          "label": "Lymphocytes",
+          "category": "labs",
+          "mean_abs_shap": 0.14074,
+          "mean_shap": -0.00944
+        },
+        {
+          "key": "st_depression",
+          "label": "ST Depression",
+          "category": "ecg",
+          "mean_abs_shap": 0.12819,
+          "mean_shap": -0.05676
+        },
+        {
+          "key": "t_inversion",
+          "label": "T Inversion",
+          "category": "ecg",
+          "mean_abs_shap": 0.12761,
+          "mean_shap": 0.00455
+        },
+        {
+          "key": "neut",
+          "label": "Neutrophils",
+          "category": "labs",
+          "mean_abs_shap": 0.1214,
+          "mean_shap": 0.01536
+        },
+        {
+          "key": "dyspnea",
+          "label": "Dyspnea",
+          "category": "symptoms",
+          "mean_abs_shap": 0.11134,
+          "mean_shap": -0.00601
+        },
+        {
+          "key": "ef_tte",
+          "label": "Ejection Fraction (TTE)",
+          "category": "echo",
+          "mean_abs_shap": 0.10377,
+          "mean_shap": 0.05286
+        },
+        {
+          "key": "region_rwma",
+          "label": "Regions with RWMA",
+          "category": "echo",
+          "mean_abs_shap": 0.09961,
+          "mean_shap": -0.02491
+        },
+        {
+          "key": "esr",
+          "label": "Erythrocyte Sedimentation Rate",
+          "category": "labs",
+          "mean_abs_shap": 0.09607,
+          "mean_shap": -0.03348
+        },
+        {
+          "key": "cr",
+          "label": "Creatinine",
+          "category": "labs",
+          "mean_abs_shap": 0.08428,
+          "mean_shap": 0.02166
+        },
+        {
+          "key": "dlp",
+          "label": "Dyslipidemia",
+          "category": "history",
+          "mean_abs_shap": 0.07485,
+          "mean_shap": 0.00124
+        },
+        {
+          "key": "wbc",
+          "label": "White Blood Cells",
+          "category": "labs",
+          "mean_abs_shap": 0.07482,
+          "mean_shap": -0.02775
+        },
+        {
+          "key": "obesity",
+          "label": "Obesity",
+          "category": "history",
+          "mean_abs_shap": 0.07134,
+          "mean_shap": -0.00669
+        },
+        {
+          "key": "fh",
+          "label": "Family History of CAD",
+          "category": "history",
+          "mean_abs_shap": 0.07006,
+          "mean_shap": -0.02832
+        },
+        {
+          "key": "nonanginal",
+          "label": "Non-anginal Chest Pain",
+          "category": "symptoms",
+          "mean_abs_shap": 0.0531,
+          "mean_shap": -0.0531
+        },
+        {
+          "key": "vhd",
+          "label": "Valvular Heart Disease",
+          "category": "echo",
+          "mean_abs_shap": 0.05269,
+          "mean_shap": 0.01506
+        },
+        {
+          "key": "function_class",
+          "label": "NYHA Function Class",
+          "category": "symptoms",
+          "mean_abs_shap": 0.05133,
+          "mean_shap": -0.00597
+        },
+        {
+          "key": "poor_r_progression",
+          "label": "Poor R-Wave Progression",
+          "category": "ecg",
+          "mean_abs_shap": 0.05075,
+          "mean_shap": -0.05075
+        },
+        {
+          "key": "fbs",
+          "label": "Fasting Blood Sugar",
+          "category": "labs",
+          "mean_abs_shap": 0.04845,
+          "mean_shap": -0.00042
+        }
+      ]
+    }
+  }
+}

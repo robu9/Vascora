@@ -22,6 +22,7 @@ class Settings:
     artifacts_dir: Path = field(
         default_factory=lambda: _paths("VASCORA_ARTIFACTS_DIR", REPO_ROOT / "ml" / "artifacts")
     )
+    predictor: str = field(default_factory=lambda: os.getenv("VASCORA_PREDICTOR", "auto"))
     cors_origins: list[str] = field(
         default_factory=lambda: os.getenv(
             "VASCORA_CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173"
@@ -39,6 +40,10 @@ class Settings:
     @property
     def metrics_path(self) -> Path:
         return self.artifacts_dir / "metrics.json"
+
+    @property
+    def model_path(self) -> Path:
+        return self.artifacts_dir / "vascora_model.joblib"
 
 
 settings = Settings()

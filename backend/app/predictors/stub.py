@@ -96,6 +96,9 @@ class StubPredictor:
             result[target] = (_sigmoid(z), None)
         return result
 
+    def predict_many(self, rows: list[dict[str, Any]], target: str):
+        return [self.predict(row)[target][0] for row in rows]
+
     def explain(self, values: dict[str, Any], targets: list[str]) -> dict[str, TargetExplanation]:
         explanations = {}
         for target in targets:

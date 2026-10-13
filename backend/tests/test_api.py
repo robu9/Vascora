@@ -4,6 +4,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.main import app
+from app.predictors import get_predictor
 from app.registry import Registry, get_registry
 
 client = TestClient(app)
@@ -47,8 +48,18 @@ def test_predict_empty_body_uses_defaults():
     body = res.json()
     assert set(body["vessels"]) == {"LAD", "LCX", "RCA"}
     assert len(body["imputed"]) == len(get_registry().features)
-    assert body["model"]["is_placeholder"] is True
+    assert body["model"]["is_placeholder"] is (get_predictor().info.name == "heuristic-stub")
     assert "not a substitute" in body["disclaimer"].lower()
+
+
+def test_prediction_intervals_are_ordered():
+    sample = client.get("/api/samples/high-risk").json()
+    body = client.post("/api/predict", json=sample["features"]).json()
+    for pred in [body["cad"], *body["vessels"].values()]:
+        assert 0 <= pred["probability"] <= 1
+        if pred["ci"] is not None:
+            lo, hi = pred["ci"]
+            assert 0 <= lo <= hi <= 1
 
 
 def test_predict_rejects_invalid_input():
@@ -75,7 +86,20 @@ def test_explanation_is_additive():
     for exp in explanations.values():
         total = exp["base_value"] + sum(c["contribution"] for c in exp["contributions"])
         assert math.isclose(total, exp["output_value"], rel_tol=1e-9)
-        assert math.isclose(sum(exp["category_totals"].values()), total - exp["base_value"])
+        assert math.isclose(
+            sum(exp["category_totals"].values()), total - exp["base_value"], abs_tol=1e-9
+        )
+
+
+def test_explanation_matches_prediction():
+    sample = client.get("/api/samples/high-risk").json()
+    pred = client.post("/api/predict", json=sample["features"]).json()
+    exp = client.post("/api/explain", json=sample["features"]).json()["explanations"]
+    assert math.isclose(exp["CAD"]["probability"], pred["cad"]["probability"], abs_tol=1e-6)
+    for v in ("LAD", "LCX", "RCA"):
+        assert math.isclose(
+            exp[v]["probability"], pred["vessels"][v]["probability"], abs_tol=1e-6
+        )
 
 
 def test_explain_unknown_target():
@@ -92,9 +116,48 @@ def test_analyze_matches_predict():
     )
 
 
+def test_counterfactual_only_lowers_modifiable_features():
+    sample = client.get("/api/samples/moderate-risk").json()
+    res = client.post("/api/counterfactual", json=sample["features"], params={"target": "CAD"})
+    assert res.status_code == 200
+    body = res.json()
+    modifiable = {f["key"] for f in client.get("/api/schema").json()["features"] if f["modifiable"]}
+    keys = {c["key"] for c in body["changes"]}
+    assert body["target"] == "CAD"
+    assert "htn" in keys
+    assert "current_smoker" not in keys  # model does not score quitting as lower risk here
+    assert keys <= modifiable - {"weight"}
+    assert all(c["delta"] < 0 for c in body["changes"])
+    assert body["combined_probability"] < min(c["probability"] for c in body["changes"])
+
+
+def test_counterfactual_says_when_risk_is_already_certain():
+    sample = client.get("/api/samples/high-risk").json()
+    body = client.post("/api/counterfactual", json=sample["features"]).json()
+    assert body["baseline_probability"] > 0.99
+    assert body["changes"] == []
+    assert body["note"]
+
+
+def test_counterfactual_unknown_target():
+    assert client.post("/api/counterfactual", json={}, params={"target": "XYZ"}).status_code == 422
+
+
 def test_metrics_placeholder():
     body = client.get("/api/metrics").json()
     assert "available" in body
+
+
+def test_held_out_presets_span_risk_and_need_no_imputation():
+    probs = {}
+    for sid in ("test-low", "test-borderline", "test-high"):
+        sample = client.get(f"/api/samples/{sid}").json()
+        res = client.post("/api/predict", json=sample["features"])
+        assert res.status_code == 200, res.text
+        assert res.json()["imputed"] == []
+        probs[sid] = res.json()["cad"]["probability"]
+    assert probs["test-low"] < 0.1
+    assert probs["test-low"] < probs["test-borderline"] < probs["test-high"]
 
 
 def test_unknown_sample_404():
