@@ -1,5 +1,26 @@
 # Vascora - CAD Risk 3D Visualization Plan
 
+## Implemented heart-viewer milestone
+
+The first viewer now lives in `frontend/`: Vite + React 19 + TypeScript + R3F 9,
+drei and Zustand. It uses the existing `/targets`, `/schema`, `/samples` and
+`/analyze` APIs without backend contract changes. It includes three sample
+patients, selectable vessels, camera presets, anatomy/risk modes, labels,
+illustrative heartbeat, explanations, error fallbacks and reduced-motion support.
+
+`assets-pipeline/` contains an editable Blender model, checksum-pinned source
+provenance, repeatable preparation/export/compression scripts, and validation.
+The source is Z-Anatomy / BodyParts3D; adapted assets retain CC BY-SA 4.0.
+The model has 20 meshes, including all 12 registry meshes. D1/OM1 are representative
+branch assignments; the PDA is an explicitly documented authored approximation.
+
+This milestone uses **probability only for vessel color**. It does not derive
+plaque, narrowing, flow speed, or regional dysfunction from probabilities.
+Trained CAD and vessel models, SHAP, and counterfactual hints are in `ml/` and served by the API.
+Full patient forms, torso rendering, cutaways, PDFs and the broader
+dashboard remain future work. The original roadmap below is historical scope;
+this milestone and `assets-pipeline/README.md` define delivered behavior.
+
 ## 0. Repo layout
 
 ```
@@ -74,7 +95,7 @@ Dataset: 303 patients, ~55 features, labels `LAD`, `LCX`, `RCA` (Stenotic/Normal
 - Studio HDRI `Environment`, soft contact shadows, ACES/AgX tone mapping.
 - Post: N8AO (ambient occlusion), subtle Bloom on high-risk emissive vessels, SMAA, vignette, DOF on focus.
 - **Heartbeat**: vertex-shader systole/diastole displacement (or morph targets if asset has them) at patient heart rate (`PR` feature), ~70 bpm default.
-- **Blood flow shader** on coronaries: scrolling pulse along tube UVs; flow slows/thins and color shifts at predicted stenotic vessels; narrowing "plaque" bulge at mid segment scaled by probability.
+- **Vessel risk overlay**: probability controls vessel-group color only. Flow, narrowing and plaque require additional evidence and are outside this milestone.
 - Torso: Fresnel/x-ray shader shell, toggleable.
 
 **Risk mapping**:
@@ -103,11 +124,11 @@ sequenceDiagram
   API-->>Store: "{cad, vessels:{LAD,LCX,RCA}, shap}"
   Store-->>Scene: subscribe vessels
   Scene->>Scene: "registry: LAD -> LAD_prox/mid/dist meshes"
-  Scene->>Scene: "useFrame lerp color, flow speed, plaque bulge"
+  Scene->>Scene: "useFrame lerp vessel color; selection highlight"
 ```
 
 - Contract: target keys `LAD`/`LCX`/`RCA` are the same strings in model registry, API response, `vessel_registry.json`, and GLB mesh name prefixes. One ID end-to-end = guaranteed correspondence.
-- Mapping per vessel: `prob -> colorRamp(prob)` (base + emissive), `prob -> flowSpeed = 1 - 0.7*prob`, `prob > threshold -> plaque bulge + pulse glow`, `CI width -> shimmer/uncertainty halo`. `PR` (pulse rate) feature drives heartbeat speed.
+- Mapping per vessel: `prob -> colorRamp(prob)`; selection controls highlight. Confidence intervals are numeric when available. No inferred plaque, flow change or uncertainty shimmer. The `pr` input drives illustrative heartbeat speed (75 bpm schema default).
 - Reverse direction: clicking a vessel mesh -> `selectedVessel` in store -> dashboard shows that target's SHAP waterfall.
 - Scene never calls the API; it only reads store. ML swap/new vessel = backend artifact + registry entry, no scene rewrite.
 
@@ -144,7 +165,7 @@ Layout: left = patient input (schema-driven form, presets, sliders for what-if w
 - [x] Nested repeated CV model zoo (LogReg, SVM, RF, ET, XGB, LGBM, CatBoost) with Optuna, for CAD/LAD/LCX/RCA; compare independent vs classifier chain
 - [x] Soft-vote ensemble + calibration + threshold tuning + bootstrap CIs; export artifacts and metrics.json + plots
 - [x] SHAP explainers per target with cached background, grouped categories, global importance, counterfactual hints on modifiable features
-- [ ] FastAPI endpoints /schema /predict /explain /metrics /samples with Pydantic + model registry
+- [x] FastAPI endpoints /schema /predict /explain /metrics /samples /counterfactual with Pydantic + model registry
 - [ ] Asset pipeline: Sketchfab CC-BY heart + Z-Anatomy coronaries/torso, align in Blender, segment-named meshes, gltf-transform compress + LOD
 - [ ] R3F scene: physical myocardium material, HDRI, AO/bloom/SMAA, heartbeat shader, coronary blood-flow shader, x-ray torso
 - [ ] vessel_registry.json mapping, risk color ramp with animated transitions, stenosis bulge, hover/select/fly-to, labels, view presets
