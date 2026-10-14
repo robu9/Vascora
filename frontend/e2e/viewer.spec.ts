@@ -112,18 +112,52 @@ test('rendering performance during orbit and heartbeat', async ({ page, browser 
   await writeFile('../assets-pipeline/performance.json', JSON.stringify(report, null, 2) + '\n');
   expect(report.fps).toBeGreaterThanOrEqual(30);
 });
-test('selecting an artery enables the risk tint on the realistic heart', async ({ page }) => {
+test('anatomy shows the realistic heart and the risk overlay brings artery labels', async ({ page }) => {
   const errors: string[] = []; page.on('pageerror', e => errors.push(e.message));
   await page.goto('/'); await expect(page.getByLabel('Sample patient')).toBeEnabled();
   await page.getByRole('button', { name: 'Pause beat' }).click();
   await expect(page.getByText('Preparing anatomy…')).toHaveCount(0);
+  const labels = page.getByRole('button', { name: 'Labels', exact: true });
+  await expect(labels).toBeDisabled();
+  await page.waitForTimeout(800);
+  await page.screenshot({ path: 'test-results/anatomy-heart.png' });
   await page.getByLabel('Sample patient').selectOption('low-risk');
-  await expect(page.getByRole('button', { name: 'Risk overlay' })).toBeEnabled();
-  await page.locator('.vessel-card').filter({ hasText: 'LAD' }).click();
+  await expect(page.getByRole('button', { name: 'Risk overlay' })).toHaveAttribute('aria-pressed', 'true');
+  await expect(labels).toBeEnabled();
+  await page.getByRole('button', { name: 'Anatomy', exact: true }).click();
+  await expect(labels).toBeDisabled();
+  expect(errors).toEqual([]);
+});
+test('clicking a territory on the heart and its label select the same target as vessel buttons', async ({ page }) => {
+  const errors: string[] = []; page.on('pageerror', e => errors.push(e.message));
+  await page.goto('/'); await expect(page.getByLabel('Sample patient')).toBeEnabled();
+  await page.getByRole('button', { name: 'Pause beat' }).click();
+  await expect(page.getByText('Preparing anatomy…')).toHaveCount(0);
+  // Territories take clicks once an estimate opens the risk overlay.
+  await page.getByLabel('Sample patient').selectOption('moderate-risk');
+  await expect(page.getByRole('button', { name: 'Risk overlay' })).toHaveAttribute('aria-pressed', 'true');
+  await page.getByRole('button', { name: 'Anterior', exact: true }).click();
+  await page.evaluate(() => scrollTo(0, 0)); await page.waitForTimeout(1500);
+  const rect = (await page.locator('canvas').boundingBox())!;
+  // From the front, the lower middle of the heart is the anterior wall: the LAD territory.
+  await page.mouse.click(rect.x + rect.width * 0.5, rect.y + rect.height * 0.65);
   await expect(page.locator('.vessel-card').filter({ hasText: 'LAD' })).toHaveAttribute('aria-pressed', 'true');
-  await page.getByRole('button', { name: 'Risk overlay' }).click();
-  await expect(page.getByRole('button', { name: 'Labels', exact: true })).toHaveCount(0);
-  await page.screenshot({ path: 'test-results/risk-heart.png' });
+  await page.waitForTimeout(1200);
+  const right = (await page.locator('canvas').boundingBox())!;
+  await page.getByRole('button', { name: 'Right', exact: true }).click(); await page.waitForTimeout(1300);
+  // From the patient's right side, the lower heart is the RCA territory.
+  await page.mouse.click(right.x + right.width * 0.5, right.y + right.height * 0.68);
+  await expect(page.locator('.vessel-card').filter({ hasText: 'RCA' })).toHaveAttribute('aria-pressed', 'true');
+  await page.getByRole('button', { name: 'Anterior', exact: true }).click(); await page.waitForTimeout(1300);
+  await page.getByRole('button', { name: 'Labels', exact: true }).click();
+  await expect(page.locator('.artery-label')).toHaveCount(3);
+  await page.locator('.artery-label').filter({ hasText: 'LAD' }).click();
+  await expect(page.locator('.vessel-card').filter({ hasText: 'LAD' })).toHaveAttribute('aria-pressed', 'true');
+  await page.waitForTimeout(1300);
+  await expect(page.locator('.artery-label').filter({ hasText: 'LAD' })).toBeVisible();
+  await page.screenshot({ path: 'test-results/labels.png' });
+  await page.getByRole('button', { name: 'Labels', exact: true }).click();
+  await expect(page.locator('.artery-label')).toHaveCount(0);
   expect(errors).toEqual([]);
 });
 test('clinical edits, explanations and held-out metrics stay tied to the heart', async ({ page }) => {
@@ -170,7 +204,7 @@ test('the safety disclaimer is acknowledged before the first session', async ({ 
   await page.close();
 });
 for (const [width, height] of [[1440, 900], [1366, 768], [1024, 768], [390, 844]] as const) {
-  test(`layout at ${width}x${height} keeps the heart and inputs readable`, async ({ page }) => {
+  test(`layout at ${width}x${height} keeps the heart, labels and inputs readable`, async ({ page }) => {
     await page.setViewportSize({ width, height });
     await page.goto('/');
     await page.getByLabel('Sample patient').selectOption('high-risk');
@@ -182,6 +216,15 @@ for (const [width, height] of [[1440, 900], [1366, 768], [1024, 768], [390, 844]
     expect(heading.y + heading.height, 'heading ends above the heart').toBeLessThanOrEqual(canvas.y + 1);
     expect(controls.y, 'controls start below the heart').toBeGreaterThanOrEqual(canvas.y + canvas.height - 1);
     expect(canvas.height).toBeGreaterThan(300);
+    await page.getByRole('button', { name: 'Labels', exact: true }).click();
+    await expect(page.locator('.artery-label')).toHaveCount(3);
+    await page.waitForTimeout(400);
+    const rects = await page.locator('.artery-label').evaluateAll(els => els.filter(e => getComputedStyle(e).visibility === 'visible').map(e => e.getBoundingClientRect()).map(r => [r.left, r.top, r.right, r.bottom]));
+    expect(rects.length, 'all three labels show from the front').toBe(3);
+    for (let i = 0; i < rects.length; i++) for (let j = i + 1; j < rects.length; j++) {
+      const [a, b] = [rects[i], rects[j]];
+      expect(a[0] < b[2] && b[0] < a[2] && a[1] < b[3] && b[1] < a[3], 'artery labels do not overlap').toBe(false);
+    }
     if (width <= 1180) {
       expect((await box('#patient')).y, 'patient picker comes before the results').toBeLessThan((await box('.big-probability')).y);
     } else {

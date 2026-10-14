@@ -2,7 +2,7 @@
 
 Decision-support viewer for coronary artery disease. A calibrated ensemble scores overall CAD and stenosis of the LAD, LCX and RCA from the Extension of the Z-Alizadeh Sani dataset. Those probabilities color the matching arteries on an interactive heart. This note covers preprocessing, models, evaluation, explanations, the 3D pipeline and how to run the system.
 
-**Disclaimer.** Vascora is for decision support and education only. It is not a substitute for coronary angiography or formal diagnostic imaging. Vessel color is a probability, not plaque location or percent narrowing.
+**Disclaimer.** Vascora is for decision support and education only. It is not a substitute for coronary angiography or formal diagnostic imaging. Territory color is a probability, not plaque location or percent narrowing.
 
 ## 1. Data and preprocessing
 
@@ -51,13 +51,13 @@ Arrows and signs are direction in log-odds. They are not percentage-point effect
 
 ## 5. 3D pipeline and integration
 
-The heart is an adaptation of Z-Anatomy / BodyParts3D (CC BY-SA 4.0). External atrial and ventricular surfaces, the great vessels and coronary curves are exported to a meshopt-compressed glTF (`frontend/public/models/heart.glb`, about 852 KB, 126,630 triangles, 20 meshes). LAD, LCX and RCA are each split into proximal, mid and distal segments. D1 and OM1 are representative branch assignments. The PDA is an authored right-dominant approximation because the source collection does not name a PDA. Proximal/mid/distal names are display partitions, not clinical lesion segments. There is no torso shell.
+The viewer draws a realistic textured heart (neshallads, Sketchfab, CC BY 4.0; about 22,500 triangles with 2k textures). The vessel contract lives in an adaptation of Z-Anatomy / BodyParts3D (CC BY-SA 4.0), which is loaded but not drawn: it sizes the realistic heart and lets the viewer check the registry. External atrial and ventricular surfaces, the great vessels and coronary curves are exported to a meshopt-compressed glTF (`frontend/public/models/heart.glb`, about 852 KB, 126,630 triangles, 20 meshes). LAD, LCX and RCA are each split into proximal, mid and distal segments. D1 and OM1 are representative branch assignments. The PDA is an authored right-dominant approximation because the source collection does not name a PDA. Proximal/mid/distal names are display partitions, not clinical lesion segments. There is no torso shell.
 
-`shared/vessel_registry.json` is the only map from a prediction key to mesh names. LAD owns `LAD_prox`, `LAD_mid`, `LAD_dist` and `D1`; LCX owns its three segments and `OM1`; RCA owns its three segments and `PDA`. The viewer checks that every registry mesh exists exactly once and otherwise refuses to color the model. The same strings (`CAD`, `LAD`, `LCX`, `RCA`) are the model registry keys, the API keys and the mesh groups.
+`shared/vessel_registry.json` is the only map from a prediction key to anatomy. LAD owns `LAD_prox`, `LAD_mid`, `LAD_dist` and `D1`; LCX owns its three segments and `OM1`; RCA owns its three segments and `PDA`. Each target also names the wall it typically supplies: LAD anterior, LCX lateral, RCA inferior. The viewer checks that every registry mesh exists exactly once and that every territory is known, and otherwise refuses to color the heart. The same strings (`CAD`, `LAD`, `LCX`, `RCA`) are the model registry keys, the API keys and the mesh groups.
 
-Risk mode lerps each vessel from blue (lower probability) toward amber (higher). Selection and hover raise emissive intensity. Orbit, zoom, pan, four camera presets and click-to-focus are available. Labels can be toggled. An illustrative heartbeat uses the patient’s pulse rate; it is a scale pulse, not a simulation, and it pauses for reduced-motion preferences. The scene never calls the API. It reads a Zustand store. The store is the only client of `/api/analyze` and `/api/counterfactual`.
+The viewer enters risk mode when an estimate arrives. A shader on the realistic heart then tints the ventricular wall by territory: the direction from the ventricles' center decides which artery's wall a point belongs to, borders blend softly, and the atria and great vessels keep their texture. The tint follows the shared ramp from blue (lower probability) to yellow (higher) and is shaded by the texture's brightness, so surface vessels stay visible. Hovering or selecting a territory strengthens it. Orbit, zoom, pan, four camera presets and click-a-territory-to-focus are available. Labels can be toggled. An illustrative heartbeat uses the patient’s pulse rate; it is a scale pulse, not a simulation, and it pauses for reduced-motion preferences. The scene never calls the API. It reads a Zustand store. The store is the only client of `/api/analyze` and `/api/counterfactual`.
 
-The clinical form is generated from `/api/schema`. Choosing a preset or editing a field sends the current record, debounced by 250 ms. The response updates the CAD figure, the three vessel probabilities, the explanation for the selected target and the artery colors together. Editing weight or height recomputes BMI so those inputs cannot contradict each other.
+The clinical form is generated from `/api/schema`. Choosing a preset or editing a field sends the current record, debounced by 250 ms. The response updates the CAD figure, the three vessel probabilities, the explanation for the selected target and the territory colors together. Editing weight or height recomputes BMI so those inputs cannot contradict each other.
 
 A persistent banner states the educational limit. The first visit also requires an acknowledgment that colors are not a lesion map; the choice is remembered for the browser session.
 
@@ -72,7 +72,7 @@ cd backend && uv sync && uv run uvicorn app.main:app --reload --port 8000
 cd frontend && npm ci && npm run dev
 ```
 
-Open http://127.0.0.1:5173. Acknowledge the disclaimer, choose a sample (including three anonymized hold-out patients), then change age, blood pressure, lipids, ECG flags or the RWMA count. The heart and the side panel update together. Click LAD, LCX or RCA on the model or in the list. Open “Show metrics” for the hold-out table.
+Open http://127.0.0.1:5173. Acknowledge the disclaimer, choose a sample (including three anonymized hold-out patients), then change age, blood pressure, lipids, ECG flags or the RWMA count. The heart and the side panel update together. Click a territory on the heart, or LAD, LCX or RCA in the list. Open “Show metrics” for the hold-out table.
 
 Tests: `uv run pytest` in `ml/` and `backend/`; `npm test`, `npm run build` and `npm run test:e2e` in `frontend/`. If the artifact is missing, the API falls back to an unfitted heuristic and the UI labels that state. Do not present those numbers as model output.
 

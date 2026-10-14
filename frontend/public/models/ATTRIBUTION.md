@@ -4,7 +4,9 @@ The heart shown in the viewer is **Realistic Human Heart** by neshallads, used u
 under [Creative Commons Attribution 4.0](https://creativecommons.org/licenses/by/4.0/).
 Commercial use is allowed. Credit: neshallads,
 https://sketchfab.com/3d-models/realistic-human-heart-3f8072336ce94d18b3d0d055a1ece089.
-The file `realistic_human_heart.glb` is the Sketchfab glTF binary with 2k textures.
+The file `realistic_human_heart.glb` is the Sketchfab glTF binary with 2k textures. In the
+risk overlay a shader tints its surface by coronary territory at render time; the file itself
+is not changed.
 
 `heart.glb` remains the Z-Anatomy / BodyParts3D adaptation described below. The viewer
 loads it to check the vessel-name contract and to size the new heart. Those meshes are

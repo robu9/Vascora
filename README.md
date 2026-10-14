@@ -146,15 +146,19 @@ npm run dev
 ```
 
 Open http://127.0.0.1:5173. Acknowledge the decision-support disclaimer. The viewer
-starts in anatomy mode. Choose a sample patient, or edit any clinical input: the
-form is built from `/api/schema`, and changes re-score CAD, LAD, LCX and RCA.
-Artery colors and the probability figures update as soon as the prediction returns.
+starts in anatomy mode, which shows a realistic textured heart. Choose a sample
+patient, or edit any clinical input: the form is built from `/api/schema`, and
+changes re-score CAD, LAD, LCX and RCA. When the prediction returns, the viewer
+switches to the risk overlay: the wall each artery typically supplies (LAD front,
+LCX left side, RCA right side and underside) takes that artery's probability color,
+and colors and figures update together.
 The factor breakdown, grouped contributions and lower-risk hints fill in after that.
-Select an artery
-on the model or in the results panel to read its probability, confidence
+Select an artery by clicking its territory
+on the heart or in the results panel to read its probability, confidence
 interval, SHAP contributions and the vitals, labs and echo measurements that
 fed the estimate. “Show metrics” loads the held-out evaluation. Use the four
-camera presets, orbit/zoom/pan, labels, and the heartbeat pause control.
+camera presets, orbit/zoom/pan, territory labels (risk overlay), and the heartbeat
+pause control.
 Reduced-motion preferences pause the heartbeat. Pulse rate in the form sets the
 illustrative beat.
 
@@ -174,14 +178,16 @@ npm run test:e2e           # starts local frontend/backend if needed
 ```
 
 The viewer presents **representative educational anatomy** and the trained
-ensemble's probabilities. Vessel colors do not show lesion position,
+ensemble's probabilities. Territory colors do not show lesion position,
 narrowing severity, flow speed, or myocardial dysfunction. The illustrative
 heartbeat uses `pr` (75 bpm by default); it is not a physiological simulation.
 
-The heart shown in the viewer is neshallads' Realistic Human Heart (CC BY 4.0).
-`heart.glb` is still the Z-Anatomy / BodyParts3D adaptation (CC BY-SA 4.0). It is
-loaded to validate vessel names and to size the new heart, and it is not drawn.
-D1 and OM1 are representative branch assignments; the PDA is an authored
+The viewer draws neshallads' Realistic Human Heart (CC BY 4.0). It is a single
+textured mesh, so the risk overlay colors it by territory: a shader tints the
+ventricular wall by the direction each registry `territory` (`anterior`, `lateral`,
+`inferior`) faces, and clicks map back to the same territories. `heart.glb`, the
+Z-Anatomy / BodyParts3D adaptation (CC BY-SA 4.0), is loaded to check the
+vessel-name contract and to size the realistic heart; it is not drawn. D1 and OM1 are representative branch assignments; the PDA is an authored
 right-dominant approximation because the source did not identify a PDA explicitly.
 Anatomy has not received clinical validation. See
 [asset reproduction and limitations](assets-pipeline/README.md),
