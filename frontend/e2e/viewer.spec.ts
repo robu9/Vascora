@@ -1,9 +1,6 @@
 import { test, expect } from '@playwright/test';
-import { readFile, writeFile } from 'node:fs/promises';
+import { writeFile } from 'node:fs/promises';
 import os from 'node:os';
-import { Mesh, PerspectiveCamera, Raycaster, Vector2, Vector3 } from 'three';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { percent } from '../src/mapping';
 const ids = ['low-risk', 'moderate-risk', 'high-risk'];
 test.beforeEach(async ({ page }) => {
@@ -115,38 +112,18 @@ test('rendering performance during orbit and heartbeat', async ({ page, browser 
   await writeFile('../assets-pipeline/performance.json', JSON.stringify(report, null, 2) + '\n');
   expect(report.fps).toBeGreaterThanOrEqual(30);
 });
-test('a real artery mesh click and labels select the same target as vessel buttons', async ({ page }) => {
+test('selecting an artery enables the risk tint on the realistic heart', async ({ page }) => {
   const errors: string[] = []; page.on('pageerror', e => errors.push(e.message));
   await page.goto('/'); await expect(page.getByLabel('Sample patient')).toBeEnabled();
   await page.getByRole('button', { name: 'Pause beat' }).click();
   await expect(page.getByText('Preparing anatomy…')).toHaveCount(0);
-  await page.getByRole('button', { name: 'Anterior', exact: true }).click();
-  await page.evaluate(() => scrollTo(0, 0)); await page.waitForTimeout(1500);
-  const rect = (await page.locator('canvas').boundingBox())!;
-  const bytes = await readFile('public/models/heart.glb');
-  const gltf = await new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).parseAsync(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength), '');
-  const camera = new PerspectiveCamera(38, rect.width / rect.height, .1, 100);
-  camera.position.set(0, .2, 4.5); camera.lookAt(0, 0, 0); camera.updateMatrixWorld();
-  gltf.scene.updateMatrixWorld(true);
-  const raycaster = new Raycaster(); let point: Vector3 | null = null;
-  const mesh = gltf.scene.getObjectByName('LAD_mid') as Mesh;
-  const position = mesh.geometry.getAttribute('position'); const indices = mesh.geometry.index!;
-  for (let i = 0; i < indices.count && !point; i += 27) {
-    const center = new Vector3();
-    for (let j = 0; j < 3; j++) center.add(new Vector3().fromBufferAttribute(position, indices.getX(i+j)));
-    center.divideScalar(3).applyMatrix4(mesh.matrixWorld).project(camera);
-    raycaster.setFromCamera(new Vector2(center.x, center.y), camera);
-    if (raycaster.intersectObject(gltf.scene, true)[0]?.object.name === 'LAD_mid') point = center;
-  }
-  expect(point).not.toBeNull();
-  await page.mouse.click(rect.x + (point!.x + 1) * rect.width / 2, rect.y + (1 - point!.y) * rect.height / 2);
+  await page.getByLabel('Sample patient').selectOption('low-risk');
+  await expect(page.getByRole('button', { name: 'Risk overlay' })).toBeEnabled();
+  await page.locator('.vessel-card').filter({ hasText: 'LAD' }).click();
   await expect(page.locator('.vessel-card').filter({ hasText: 'LAD' })).toHaveAttribute('aria-pressed', 'true');
-  await page.getByRole('button', { name: 'Labels', exact: true }).click();
-  await expect(page.locator('.artery-label')).toHaveCount(3);
-  await expect(page.locator('.artery-label').filter({ hasText: 'LAD' })).toBeVisible();
-  await page.screenshot({ path: 'test-results/labels.png' });
-  await page.getByRole('button', { name: 'Labels', exact: true }).click();
-  await expect(page.locator('.artery-label')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Risk overlay' }).click();
+  await expect(page.getByRole('button', { name: 'Labels', exact: true })).toHaveCount(0);
+  await page.screenshot({ path: 'test-results/risk-heart.png' });
   expect(errors).toEqual([]);
 });
 test('clinical edits, explanations and held-out metrics stay tied to the heart', async ({ page }) => {
@@ -193,7 +170,7 @@ test('the safety disclaimer is acknowledged before the first session', async ({ 
   await page.close();
 });
 for (const [width, height] of [[1440, 900], [1366, 768], [1024, 768], [390, 844]] as const) {
-  test(`layout at ${width}x${height} keeps the heart, labels and inputs readable`, async ({ page }) => {
+  test(`layout at ${width}x${height} keeps the heart and inputs readable`, async ({ page }) => {
     await page.setViewportSize({ width, height });
     await page.goto('/');
     await page.getByLabel('Sample patient').selectOption('high-risk');
@@ -205,15 +182,6 @@ for (const [width, height] of [[1440, 900], [1366, 768], [1024, 768], [390, 844]
     expect(heading.y + heading.height, 'heading ends above the heart').toBeLessThanOrEqual(canvas.y + 1);
     expect(controls.y, 'controls start below the heart').toBeGreaterThanOrEqual(canvas.y + canvas.height - 1);
     expect(canvas.height).toBeGreaterThan(300);
-    await page.getByRole('button', { name: 'Labels', exact: true }).click();
-    await expect(page.locator('.artery-label')).toHaveCount(3);
-    await page.waitForTimeout(400);
-    const rects = await page.locator('.artery-label').evaluateAll(els => els.filter(e => getComputedStyle(e).visibility === 'visible').map(e => e.getBoundingClientRect()).map(r => [r.left, r.top, r.right, r.bottom]));
-    expect(rects.length, 'all three labels show from the front').toBe(3);
-    for (let i = 0; i < rects.length; i++) for (let j = i + 1; j < rects.length; j++) {
-      const [a, b] = [rects[i], rects[j]];
-      expect(a[0] < b[2] && b[0] < a[2] && a[1] < b[3] && b[1] < a[3], 'artery labels do not overlap').toBe(false);
-    }
     if (width <= 1180) {
       expect((await box('#patient')).y, 'patient picker comes before the results').toBeLessThan((await box('.big-probability')).y);
     } else {

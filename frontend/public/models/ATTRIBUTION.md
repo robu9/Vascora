@@ -1,6 +1,17 @@
 # Heart model attribution
 
-This heart model is adapted for Vascora from:
+The heart shown in the viewer is **Realistic Human Heart** by neshallads, used unmodified
+under [Creative Commons Attribution 4.0](https://creativecommons.org/licenses/by/4.0/).
+Commercial use is allowed. Credit: neshallads,
+https://sketchfab.com/3d-models/realistic-human-heart-3f8072336ce94d18b3d0d055a1ece089.
+The file `realistic_human_heart.glb` is the Sketchfab glTF binary with 2k textures.
+
+`heart.glb` remains the Z-Anatomy / BodyParts3D adaptation described below. The viewer
+loads it to check the vessel-name contract and to size the new heart. Those meshes are
+not drawn, because they were built for a different shape. That file stays under
+CC BY-SA 4.0, which does not replace the Attribution terms on the Sketchfab surface.
+
+The coronary adaptation comes from:
 
 - **Z-Anatomy — The libre 3D atlas of anatomy — CC BY-SA 4.0**.
   Gauthier Kervyn (design, 3D, anatomy), Marcin Zielinski (Blender add-on).

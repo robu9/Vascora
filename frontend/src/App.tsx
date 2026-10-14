@@ -54,7 +54,7 @@ export default function App() {
         </section>
         <section className="detail-section" aria-live="polite">
           <div className="section-title"><span className="eyebrow">{target} · DETAILS</span>{selected && <button className="text-button" onClick={() => selectVessel(null)}>View CAD</button>}</div>
-          <p>{selected ? registry?.targets[selected]?.description : 'Select a vessel on the heart or in the list to inspect its estimate and the factors behind it.'}</p>
+          <p>{selected ? registry?.targets[selected]?.description : 'Select a vessel in the list to inspect its estimate and the factors behind it.'}</p>
           {prediction && <dl className="details-grid">
             <div><dt>Probability</dt><dd>{percent(prediction.probability)}</dd></div>
             <div><dt>Threshold</dt><dd>{percent(prediction.threshold)}</dd></div>
@@ -65,7 +65,7 @@ export default function App() {
         <ExplanationPanel target={target}/>
         <MetricsPanel/>
         <footer className="results-footer">
-          Representative anatomy, not patient imaging. Colors show vessel-level probability, not blockage location or severity.
+          Representative anatomy, not patient imaging. In risk overlay the heart tint follows the selected artery, not blockage location or severity.
           {analysis && <p>{analysis.prediction.imputed.length} inputs filled with schema defaults · Model {analysis.prediction.model.version}</p>}
           <a href="/models/ATTRIBUTION.md" target="_blank" rel="noreferrer">Anatomy credits & license ↗</a>
         </footer>

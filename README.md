@@ -178,13 +178,16 @@ ensemble's probabilities. Vessel colors do not show lesion position,
 narrowing severity, flow speed, or myocardial dysfunction. The illustrative
 heartbeat uses `pr` (75 bpm by default); it is not a physiological simulation.
 
-The model is adapted from Z-Anatomy / BodyParts3D. D1 and OM1 are representative
-branch assignments; the PDA is an authored right-dominant approximation because
-the source did not identify a PDA explicitly. Anatomy has not received clinical
-validation. See [asset reproduction and limitations](assets-pipeline/README.md),
+The heart shown in the viewer is neshallads' Realistic Human Heart (CC BY 4.0).
+`heart.glb` is still the Z-Anatomy / BodyParts3D adaptation (CC BY-SA 4.0). It is
+loaded to validate vessel names and to size the new heart, and it is not drawn.
+D1 and OM1 are representative branch assignments; the PDA is an authored
+right-dominant approximation because the source did not identify a PDA explicitly.
+Anatomy has not received clinical validation. See
+[asset reproduction and limitations](assets-pipeline/README.md),
 [credits and asset license](frontend/public/models/ATTRIBUTION.md), and
-[source provenance](assets-pipeline/provenance.json). Adapted model assets retain
-CC BY-SA 4.0 licensing. The source notice is preserved with the assets.
+[source provenance](assets-pipeline/provenance.json). `LICENSE-source.txt` is the
+unchanged Z-Anatomy notice for that coronary adaptation.
 
 ### Environment variables
 

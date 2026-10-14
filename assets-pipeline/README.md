@@ -70,6 +70,8 @@ before extracting the library, avoiding parent-dependent transforms on reload.
 
 ## Licensing
 
-See `LICENSE-source.txt` for the unchanged source notice and
+See `LICENSE-source.txt` for the unchanged Z-Anatomy source notice and
 `../frontend/public/models/ATTRIBUTION.md` for complete attribution, modifications,
-and license links. The adapted model assets retain CC BY-SA 4.0 licensing.
+and license links. The adapted coronary file retains CC BY-SA 4.0 licensing.
+The viewer draws neshallads' Realistic Human Heart (`realistic_human_heart.glb`,
+CC BY 4.0) instead of these meshes.

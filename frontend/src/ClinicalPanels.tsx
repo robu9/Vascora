@@ -131,7 +131,7 @@ export function DisclaimerModal() {
       <span className="eyebrow">CLINICAL SAFETY</span>
       <h2 id="disclaimer-title">Decision support only</h2>
       <p>{disclaimer}</p>
-      <p>Colors on LAD, LCX and RCA show predicted stenosis probability. They do not locate plaque, measure narrowing, or replace formal diagnostic imaging.</p>
+      <p>In risk overlay, the heart tint follows the selected artery&apos;s predicted stenosis probability. It does not locate plaque, measure narrowing, or replace formal diagnostic imaging.</p>
       <button onClick={() => { rememberAcknowledged(); setOpen(false); }}>I understand</button>
     </div>
   </div>;
