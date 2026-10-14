@@ -4,6 +4,7 @@ import os from 'node:os';
 import { Mesh, PerspectiveCamera, Raycaster, Vector2, Vector3 } from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
+import { percent } from '../src/mapping';
 const ids = ['low-risk', 'moderate-risk', 'high-risk'];
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => sessionStorage.setItem('vascora-disclaimer', '1'));
@@ -19,10 +20,12 @@ test('live API, all patient presets, vessel selection, views and screenshot', as
     const sample = await (await request.get(`http://127.0.0.1:8000/api/samples/${id}`)).json();
     const expected = await (await request.post('http://127.0.0.1:8000/api/analyze', { data: sample.features })).json();
     await page.getByLabel('Sample patient').selectOption(id);
-    await expect(page.locator('.big-probability')).toContainText(`${(expected.prediction.cad.probability * 100).toFixed(1)}%`);
+    await expect(page.locator('.big-probability')).toContainText(percent(expected.prediction.cad.probability));
+    await page.waitForTimeout(800); // let vessel colors settle for the review screenshot
+    await page.screenshot({ path: `test-results/preset-${id}.png` });
     for (const vessel of ['LAD', 'LCX', 'RCA']) {
       const button = page.locator('.vessel-card').filter({ hasText: vessel });
-      await expect(button).toContainText(`${(expected.prediction.vessels[vessel].probability * 100).toFixed(1)}%`);
+      await expect(button).toContainText(percent(expected.prediction.vessels[vessel].probability));
       await button.click(); await expect(button).toHaveAttribute('aria-pressed', 'true');
       await expect(page.locator('.detail-section')).toContainText(`${vessel} · DETAILS`);
     }
@@ -83,10 +86,10 @@ test('zero probability is displayed and unavailable WebGL keeps results usable',
     await route.fulfill({ json: body });
   });
   await page.goto('/'); await page.getByLabel('Sample patient').selectOption('low-risk');
-  await expect(page.locator('.big-probability')).toContainText('0.0%');
+  await expect(page.locator('.big-probability')).toContainText('<1%');
   await expect(page.getByText('3D view unavailable')).toBeVisible();
   await page.locator('.vessel-card').filter({ hasText: 'LAD' }).click();
-  await expect(page.locator('.detail-section')).toContainText('0.0%');
+  await expect(page.locator('.detail-section')).toContainText('<1%');
 });
 test('rendering performance during orbit and heartbeat', async ({ page, browser }) => {
   await page.goto('/'); await expect(page.getByLabel('Sample patient')).toBeEnabled();
@@ -188,4 +191,60 @@ test('the safety disclaimer is acknowledged before the first session', async ({ 
   await page.reload();
   await expect(page.getByRole('dialog')).toHaveCount(0);
   await page.close();
+});
+for (const [width, height] of [[1440, 900], [1366, 768], [1024, 768], [390, 844]] as const) {
+  test(`layout at ${width}x${height} keeps the heart, labels and inputs readable`, async ({ page }) => {
+    await page.setViewportSize({ width, height });
+    await page.goto('/');
+    await page.getByLabel('Sample patient').selectOption('high-risk');
+    await expect(page.getByRole('button', { name: 'Risk overlay' })).toBeEnabled();
+    await expect(page.getByText('Preparing anatomy…')).toHaveCount(0);
+    await page.getByRole('button', { name: 'Pause beat' }).click();
+    const box = async (selector: string) => (await page.locator(selector).first().boundingBox())!;
+    const canvas = await box('canvas'), heading = await box('.viewer-heading'), controls = await box('.viewer-bottom');
+    expect(heading.y + heading.height, 'heading ends above the heart').toBeLessThanOrEqual(canvas.y + 1);
+    expect(controls.y, 'controls start below the heart').toBeGreaterThanOrEqual(canvas.y + canvas.height - 1);
+    expect(canvas.height).toBeGreaterThan(300);
+    await page.getByRole('button', { name: 'Labels', exact: true }).click();
+    await expect(page.locator('.artery-label')).toHaveCount(3);
+    await page.waitForTimeout(400);
+    const rects = await page.locator('.artery-label').evaluateAll(els => els.filter(e => getComputedStyle(e).visibility === 'visible').map(e => e.getBoundingClientRect()).map(r => [r.left, r.top, r.right, r.bottom]));
+    expect(rects.length, 'all three labels show from the front').toBe(3);
+    for (let i = 0; i < rects.length; i++) for (let j = i + 1; j < rects.length; j++) {
+      const [a, b] = [rects[i], rects[j]];
+      expect(a[0] < b[2] && b[0] < a[2] && a[1] < b[3] && b[1] < a[3], 'artery labels do not overlap').toBe(false);
+    }
+    if (width <= 1180) {
+      expect((await box('#patient')).y, 'patient picker comes before the results').toBeLessThan((await box('.big-probability')).y);
+    } else {
+      expect(await page.evaluate(() => document.documentElement.scrollHeight <= innerHeight), 'page itself does not scroll').toBe(true);
+      await page.locator('.results').evaluate(e => { e.scrollTop = e.scrollHeight; });
+      expect((await box('canvas')).y, 'heart stays put while results scroll').toBe(canvas.y);
+    }
+    const tiny = await page.evaluate(() => [...document.querySelectorAll('body *')].filter(e => {
+      const r = e.getBoundingClientRect();
+      return r.width > 1 && r.height > 1 && [...e.childNodes].some(n => n.nodeType === 3 && n.textContent!.trim()) && parseFloat(getComputedStyle(e).fontSize) < 11;
+    }).map(e => `${e.tagName.toLowerCase()}.${e.className}`));
+    expect(tiny, 'no visible text under 11px').toEqual([]);
+    await page.screenshot({ path: `test-results/layout-${width}.png`, fullPage: width <= 1180 });
+  });
+}
+test('one finger on the heart scrolls the page on touch screens', async ({ browser }) => {
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
+  await context.addInitScript(() => sessionStorage.setItem('vascora-disclaimer', '1'));
+  const page = await context.newPage();
+  await page.goto('http://127.0.0.1:5173/');
+  await expect(page.getByText('Two fingers to rotate')).toBeVisible();
+  await expect(page.getByText('Preparing anatomy…')).toHaveCount(0);
+  const chain = await page.locator('canvas').evaluate(c => {
+    const out: string[] = [];
+    for (let e: Element | null = c; e && !e.classList.contains('stage'); e = e.parentElement) out.push(getComputedStyle(e).touchAction);
+    return out;
+  });
+  expect(chain, 'nothing between the canvas and the page blocks touch panning').not.toContain('none');
+  const canvas = (await page.locator('canvas').boundingBox())!;
+  const cdp = await context.newCDPSession(page);
+  await cdp.send('Input.synthesizeScrollGesture', { x: canvas.x + canvas.width / 2, y: canvas.y + canvas.height * 0.7, yDistance: -300, gestureSourceType: 'touch', speed: 1200 });
+  await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(100);
+  await context.close();
 });

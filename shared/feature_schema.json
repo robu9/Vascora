@@ -53,7 +53,7 @@
     {"key": "t_inversion", "column": "Tinversion", "label": "T Inversion", "type": "binary", "category": "ecg", "modifiable": false, "default": 0},
     {"key": "lvh", "column": "LVH", "label": "Left Ventricular Hypertrophy", "type": "yn", "category": "ecg", "modifiable": false, "default": "N"},
     {"key": "poor_r_progression", "column": "Poor R Progression", "label": "Poor R-Wave Progression", "type": "yn", "category": "ecg", "modifiable": false, "default": "N"},
-    {"key": "bbb", "column": "BBB", "label": "Bundle Branch Block", "type": "categorical", "options": ["N", "LBBB", "RBBB"], "category": "ecg", "modifiable": false, "default": "N"},
+    {"key": "bbb", "column": "BBB", "label": "Bundle Branch Block", "type": "categorical", "options": ["N", "LBBB", "RBBB"], "option_labels": {"N": "None", "LBBB": "Left BBB", "RBBB": "Right BBB"}, "category": "ecg", "modifiable": false, "default": "N"},
 
     {"key": "fbs", "column": "FBS", "label": "Fasting Blood Sugar", "type": "number", "unit": "mg/dL", "min": 40, "max": 500, "normal": [70, 100], "category": "labs", "modifiable": true, "default": 100},
     {"key": "cr", "column": "CR", "label": "Creatinine", "type": "number", "unit": "mg/dL", "min": 0.3, "max": 10, "normal": [0.6, 1.3], "category": "labs", "modifiable": false, "default": 1.0},
@@ -72,6 +72,6 @@
 
     {"key": "ef_tte", "column": "EF-TTE", "label": "Ejection Fraction (TTE)", "type": "number", "unit": "%", "min": 10, "max": 75, "normal": [55, 70], "category": "echo", "modifiable": false, "default": 50},
     {"key": "region_rwma", "column": "Region RWMA", "label": "Regions with RWMA", "type": "ordinal", "options": [0, 1, 2, 3, 4], "category": "echo", "modifiable": false, "default": 0},
-    {"key": "vhd", "column": "VHD", "label": "Valvular Heart Disease", "type": "categorical", "options": ["N", "mild", "Moderate", "Severe"], "category": "echo", "modifiable": false, "default": "N"}
+    {"key": "vhd", "column": "VHD", "label": "Valvular Heart Disease", "type": "categorical", "options": ["N", "mild", "Moderate", "Severe"], "option_labels": {"N": "None", "mild": "Mild", "Moderate": "Moderate", "Severe": "Severe"}, "category": "echo", "modifiable": false, "default": "N"}
   ]
 }

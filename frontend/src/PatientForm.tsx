@@ -82,6 +82,8 @@ export function PatientForm() {
   const selectSample = useStore(s => s.selectSample);
   const initialize = useStore(s => s.initialize);
   const retry = useStore(s => s.retry);
+  // On phones the form sits between the heart and the results; start with groups folded.
+  const [compact] = useState(() => matchMedia('(max-width: 760px)').matches);
   const categories = schema?.categories ?? {};
   const grouped = Object.keys(categories).map(key => ({
     key,
@@ -103,7 +105,7 @@ export function PatientForm() {
     {initError && <div role="alert" className="error">{initError}<button onClick={() => void initialize()}>Retry connection</button></div>}
     {loading && <p role="status">Analyzing patient…</p>}
     {error && <div role="alert" className="error">{error}<button onClick={() => void retry()}>Retry analysis</button></div>}
-    {grouped.map(group => <details key={group.key} open={!closed.has(group.key)}>
+    {grouped.map(group => <details key={group.key} open={!compact && !closed.has(group.key)}>
       <summary>{group.label}</summary>
       {group.key === 'echo' && <p className="fine-print">Region with RWMA is an echocardiographic input. It is not a 3D lesion map.</p>}
       <div className="fields">{group.features.map(feature => feature.type === 'number'

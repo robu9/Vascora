@@ -3,7 +3,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { DisclaimerModal, ExplanationPanel, MetricsPanel } from './ClinicalPanels';
 import { HeartScene } from './HeartScene';
 import { PatientForm } from './PatientForm';
-import { percent, vessels } from './mapping';
+import { percent, percentRange, riskColor, riskGradient, vessels } from './mapping';
 import { useStore } from './store';
 
 const disclaimer = 'For decision support and educational purposes only. Not a substitute for coronary angiography or formal diagnostic imaging.';
@@ -27,26 +27,30 @@ export default function App() {
     <div className="disclaimer"><span aria-hidden="true">ⓘ</span><span>{analysis?.disclaimer ?? disclaimer}</span></div>
     <main>
       <HeartScene/>
-      <aside className="results" aria-label="Patient and risk results">
+      <aside className="results" aria-label="Patient and risk results" aria-busy={loading && !!analysis}>
         {analysis?.prediction.model.is_placeholder && <div className="placeholder-tag">DEMO MODEL · HEURISTIC PLACEHOLDER<p>These estimates are not from a trained model.</p></div>}
         <section className="risk-summary">
           <div className="section-title"><span className="eyebrow">OVERALL CAD ESTIMATE</span><span className="small-tag">CAD</span></div>
           <div className="big-probability">{analysis ? percent(analysis.prediction.cad.probability) : '—'}<span>estimated probability</span></div>
           {loading && !analysis && <p className="classification" role="status">Scoring LAD, LCX and RCA…</p>}
+          {!loading && !analysis && <p className="empty-state">Choose a sample patient, or change any clinical input, to estimate risk.</p>}
           {analysis && <p className="classification">{analysis.prediction.cad.predicted_positive ? 'Above' : 'Below'} model threshold · {percent(analysis.prediction.cad.threshold)}</p>}
         </section>
         <section className="vessel-section">
           <div className="section-title"><span className="eyebrow">CORONARY ARTERIES</span><span className="hint">Select to explore</span></div>
           <div className="vessel-list">{vessels.map(vessel => {
-            const probability = analysis?.prediction.vessels[vessel].probability;
+            const estimate = analysis?.prediction.vessels[vessel];
             return <button className={`vessel-card ${selected === vessel ? 'selected' : ''}`} key={vessel} aria-pressed={selected === vessel} onClick={() => selectVessel(vessel)}>
               <span className="vessel-symbol">{vessel === 'LAD' ? '01' : vessel === 'LCX' ? '02' : '03'}</span>
               <span className="vessel-name"><strong>{vessel}</strong><small>{registry?.targets[vessel]?.label ?? vessel}</small></span>
-              <span className="vessel-value">{probability == null ? '—' : percent(probability)}<small>↗</small></span>
-              {probability != null && <span className="vessel-bar" aria-hidden="true"><span style={{ width: `${probability * 100}%` }}/></span>}
+              <span className="vessel-value">{estimate ? percent(estimate.probability) : '—'}</span>
+              {estimate && <span className="vessel-bar" aria-hidden="true">
+                <span style={{ width: `${estimate.probability * 100}%`, background: riskColor(estimate.probability) }}/>
+                <i className="threshold-tick" style={{ left: `${estimate.threshold * 100}%` }}/>
+              </span>}
             </button>;
           })}</div>
-          <div className="legend"><div className="legend-gradient"/><div><span>0% · lower probability</span><span>100% · higher</span></div></div>
+          <div className="legend"><div className="legend-gradient" style={{ background: riskGradient }}/><div><span>Lower probability</span><span><i className="threshold-tick legend-tick" aria-hidden="true"/> model threshold</span><span>Higher</span></div></div>
         </section>
         <section className="detail-section" aria-live="polite">
           <div className="section-title"><span className="eyebrow">{target} · DETAILS</span>{selected && <button className="text-button" onClick={() => selectVessel(null)}>View CAD</button>}</div>
@@ -55,7 +59,7 @@ export default function App() {
             <div><dt>Probability</dt><dd>{percent(prediction.probability)}</dd></div>
             <div><dt>Threshold</dt><dd>{percent(prediction.threshold)}</dd></div>
             <div><dt>Classification</dt><dd>{prediction.predicted_positive ? 'Above threshold' : 'Below threshold'}</dd></div>
-            <div><dt>Confidence interval</dt><dd>{prediction.ci ? `${percent(prediction.ci[0])}–${percent(prediction.ci[1])}` : 'Not available'}</dd></div>
+            <div><dt>90% confidence interval</dt><dd>{prediction.ci ? percentRange(prediction.ci[0], prediction.ci[1]) : 'Not available'}</dd></div>
           </dl>}
         </section>
         <ExplanationPanel target={target}/>

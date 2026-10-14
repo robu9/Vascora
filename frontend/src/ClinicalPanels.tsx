@@ -1,7 +1,7 @@
-import { useState } from 'react';
-import { percent } from './mapping';
+import { useMemo, useState } from 'react';
+import { displayValue, percent } from './mapping';
 import { useStore } from './store';
-import type { Contribution, Features, Target } from './types';
+import type { FeatureSpec, Features, Target } from './types';
 
 const physiology = new Set(['vitals', 'labs', 'echo']);
 const shown = ['accuracy', 'precision', 'recall', 'f1', 'roc_auc'] as const;
@@ -13,16 +13,9 @@ function formatMetric(key: string, value: number) {
   return key === 'roc_auc' || key === 'f1' ? value.toFixed(3) : `${(value * 100).toFixed(1)}%`;
 }
 
-function formatValue(feature: Contribution) {
-  if (typeof feature.value === 'number') {
-    const text = Number.isInteger(feature.value) ? String(feature.value) : feature.value.toFixed(1);
-    return feature.unit ? `${text} ${feature.unit}` : text;
-  }
-  return feature.unit ? `${String(feature.value)} ${feature.unit}` : String(feature.value);
-}
-
 export function ExplanationPanel({ target }: { target: Target }) {
   const schema = useStore(s => s.schema);
+  const specs = useMemo(() => new Map<string, FeatureSpec>(schema?.features.map(f => [f.key, f]) ?? []), [schema]);
   const analysis = useStore(s => s.analysis);
   const explaining = useStore(s => s.explaining);
   const explanation = analysis?.explanations[target];
@@ -43,7 +36,8 @@ export function ExplanationPanel({ target }: { target: Target }) {
   const hints = counterfactual?.target === target ? counterfactual : null;
   return <section className="explain-section" aria-label="Why this estimate">
     <div className="section-title"><span className="eyebrow">WHY THIS ESTIMATE</span><span className="small-tag">SHAP</span></div>
-    <p className="method">{explanation.method}. Values are log-odds added to a base of {explanation.base_value.toFixed(2)}.</p>
+    <p className="explain-lede">How each input moved the {target} estimate. <span className="increase">Orange raises it</span>, <span className="decrease">blue lowers it</span>.</p>
+    <p className="method">Method: {explanation.method}. Contributions are log-odds added to a baseline of {explanation.base_value.toFixed(2)}.</p>
     <h3>Contribution by clinical group</h3>
     <ul className="category-bars">
       {totals.map(([key, value]) => <li key={key}>
@@ -55,7 +49,7 @@ export function ExplanationPanel({ target }: { target: Target }) {
     <h3>Strongest factors</h3>
     <ol className="waterfall">
       {explanation.contributions.slice(0, 8).map(feature => <li key={feature.key}>
-        <span>{feature.label}<small>{formatValue(feature)}{feature.out_of_range ? ' · outside typical range' : ''}</small></span>
+        <span>{feature.label}<small>{displayValue(specs.get(feature.key), feature.value)}{feature.out_of_range ? ' · outside typical range' : ''}</small></span>
         <span className="bar-track" aria-hidden="true"><span className={feature.contribution >= 0 ? 'bar-up' : 'bar-down'} style={{ width: `${(Math.abs(feature.contribution) / maxContribution) * 100}%` }}/></span>
         <span className={feature.contribution > 0 ? 'increase' : 'decrease'}>{feature.contribution > 0 ? '+' : ''}{feature.contribution.toFixed(3)}</span>
       </li>)}
@@ -66,14 +60,14 @@ export function ExplanationPanel({ target }: { target: Target }) {
       <div className="measure-head" role="row"><span>Measurement</span><span>Value</span><span>Effect</span></div>
       {measurements.map(feature => <div className="measure-row" role="row" key={feature.key}>
         <span>{feature.label}{feature.out_of_range ? <em> outside range</em> : null}</span>
-        <span>{formatValue(feature)}</span>
+        <span>{displayValue(specs.get(feature.key), feature.value)}</span>
         <span className={feature.contribution > 0 ? 'increase' : 'decrease'}>{feature.contribution > 0 ? '↑' : feature.contribution < 0 ? '↓' : '—'} {Math.abs(feature.contribution).toFixed(3)}</span>
       </div>)}
     </div>
     <h3>What the model scores as lower risk</h3>
     {hints?.changes.length ? <ol className="hints">
       {hints.changes.slice(0, 4).map(change => <li key={change.key}>
-        <span>{change.label}<small>{String(change.from_value)} → {String(change.to_value)}{change.unit ? ` ${change.unit}` : ''}</small></span>
+        <span>{change.label}<small>{displayValue(specs.get(change.key), change.from_value, false)} → {displayValue(specs.get(change.key), change.to_value)}</small></span>
         <span className="hint-actions"><span className="decrease">{percent(change.probability)}</span><button type="button" className="text-button" onClick={() => {
           const updates: Features = {};
           if (typeof change.to_value === 'string' || typeof change.to_value === 'number') updates[change.key] = change.to_value;
