@@ -119,9 +119,18 @@ export function MetricsPanel() {
 }
 
 const disclaimer = 'For decision support and educational purposes only. Not a substitute for coronary angiography or formal diagnostic imaging.';
+const acknowledgedKey = 'vascora-disclaimer';
+
+// Storage can throw when the browser blocks site data; then the modal simply shows each visit.
+function acknowledged() {
+  try { return sessionStorage.getItem(acknowledgedKey) === '1'; } catch { return false; }
+}
+function rememberAcknowledged() {
+  try { sessionStorage.setItem(acknowledgedKey, '1'); } catch { /* not persisted */ }
+}
 
 export function DisclaimerModal() {
-  const [open, setOpen] = useState(() => sessionStorage.getItem('vascora-disclaimer') !== '1');
+  const [open, setOpen] = useState(() => !acknowledged());
   if (!open) return null;
   return <div className="modal-backdrop">
     <div className="modal" role="dialog" aria-modal="true" aria-labelledby="disclaimer-title">
@@ -129,7 +138,7 @@ export function DisclaimerModal() {
       <h2 id="disclaimer-title">Decision support only</h2>
       <p>{disclaimer}</p>
       <p>Colors on LAD, LCX and RCA show predicted stenosis probability. They do not locate plaque, measure narrowing, or replace formal diagnostic imaging.</p>
-      <button onClick={() => { sessionStorage.setItem('vascora-disclaimer', '1'); setOpen(false); }}>I understand</button>
+      <button onClick={() => { rememberAcknowledged(); setOpen(false); }}>I understand</button>
     </div>
   </div>;
 }

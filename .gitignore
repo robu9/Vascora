@@ -15,6 +15,8 @@ ml/data/*
 !ml/data/.gitkeep
 ml/artifacts/*.joblib
 ml/artifacts/*.pkl
+# The served model is committed on purpose so the API runs without a two-hour retrain.
+!ml/artifacts/vascora_model.joblib
 
 # Editor / OS
 .cursor/

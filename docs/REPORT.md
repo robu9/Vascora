@@ -10,7 +10,7 @@ The source is UCI repository id 411: 303 patients and 55 clinical inputs (demogr
 
 `LAD`, `LCX`, `RCA` and `Cath` are dropped from every model matrix. `vascora_ml.data.assert_no_leakage` refuses a frame that still contains them, and the API registry refuses to start if any target column is listed as an input. Region with RWMA is kept as an echo feature. It is not treated as a map of where a lesion sits.
 
-Binary and yes/no fields are encoded inside the training pipeline. Categorical fields (`Sex`, `BBB`, `VHD`) are one-hot encoded. The split is stratified 80/20 on the count of stenotic vessels: 242 patients for development, 61 held out. The test split is not used for training, model selection, threshold tuning or calibration. Missing inputs at request time are filled from `shared/feature_schema.json` defaults and listed as `imputed` so the dashboard can say which values were not supplied.
+Yes/no fields become 0/1. Sex is a 0/1 flag and valvular heart disease is an ordered severity code. Bundle branch block, the only nominal field, is one-hot encoded inside each model pipeline. That pipeline also adds TG/HDL, LDL/HDL, neutrophil/lymphocyte and BUN/creatinine ratios, risk-factor and ECG-finding counts, and an age-risk flag, and it is refit in every fold. The split is stratified 80/20 on the count of stenotic vessels: 242 patients for development, 61 held out. The test split is not used for training, model selection, threshold tuning or calibration. Missing inputs at request time are filled from `shared/feature_schema.json` defaults and listed as `imputed` so the dashboard can say which values were not supplied.
 
 The same schema is the form contract. Each feature has a key, label, type, unit, range, clinical category and a modifiable flag. Adding a feature is a schema change plus a retrained artifact, not a new screen.
 
@@ -20,7 +20,7 @@ Each target has its own calibrated soft-vote ensemble. On the development set th
 
 For each target the top three models by inner-fold AUC are refit and combined in a soft vote, then Platt-scaled on out-of-fold votes. A classifier chain CAD → LAD → LCX → RCA, fed out-of-fold probabilities rather than true labels, is compared on the same folds. A target joins the chain only when chaining lifts CV AUC by at least 0.005. Decision thresholds maximize F1 on out-of-fold development predictions. The served CAD ensemble is CatBoost, elastic-net logistic regression and extra trees, Platt-calibrated, with an F1 threshold of 0.505. Artifacts and `metrics.json` are what the API loads.
 
-Uncertainty on a single patient is the spread across ensemble members, returned as an interval when the artifact provides one. Heart color uses the point probability only.
+Uncertainty on a single patient is the 90% range of the probability across ten bootstrap refits of the whole model, widened when needed to contain the point estimate. It shows how much the estimate depends on which development patients the model saw. It does not include calibration error. Heart color uses the point probability only.
 
 ## 3. Evaluation
 
@@ -47,7 +47,7 @@ Local explanations are permutation SHAP on the full ensemble, in log-odds, so th
 
 Arrows and signs are direction in log-odds. They are not percentage-point effects. A separate counterfactual pass moves schema-flagged modifiable features into their normal range and keeps a hint only when this model assigns a lower probability. Weight is not an independent lever; a BMI change recomputes weight from height. On the moderate-risk preset this lowers CAD risk from about 0.17 to about 0.04. On the high-risk preset it often returns no hint, because typical angina, age and wall-motion findings already pin the probability near 1. A change the model does not support is not shown, even if it would be sensible clinically.
 
-`/api/analyze` returns prediction and SHAP together. Repeat requests for the same patient are cached. Predict is on the order of 60 ms; a four-target explanation is on the order of half a second.
+`/api/analyze` returns prediction and SHAP together. Repeat requests for the same patient are cached. Predict, including the bootstrap interval, is on the order of 0.2 s; a four-target explanation is on the order of half a second.
 
 ## 5. 3D pipeline and integration
 

@@ -4,9 +4,22 @@ import type { Analysis, Counterfactual, Features, MetricsReport, Registry, Sampl
 const base = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '');
 const targets: Target[] = ['CAD', 'LAD', 'LCX', 'RCA'];
 
+interface ValidationIssue { loc?: (string | number)[]; msg?: string }
+
+/** FastAPI puts a message or a list of field issues in `detail`; surface it when present. */
+async function failure(res: Response): Promise<Error> {
+  let detail: unknown;
+  try { detail = ((await res.json()) as { detail?: unknown }).detail; } catch { detail = undefined; }
+  if (typeof detail === 'string' && detail) return new Error(detail);
+  if (Array.isArray(detail) && detail.length) {
+    return new Error((detail as ValidationIssue[]).map(issue => `${issue.loc?.at(-1) ?? 'input'}: ${issue.msg ?? 'invalid value'}`).join('; '));
+  }
+  return new Error(`API request failed (${res.status}). Please retry.`);
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${base}/api${path}`, init);
-  if (!res.ok) throw new Error(`API request failed (${res.status}). Please retry.`);
+  if (!res.ok) throw await failure(res);
   return res.json() as Promise<T>;
 }
 
@@ -50,6 +63,7 @@ interface State {
   initError: string | null;
   initialize: () => Promise<void>;
   selectSample: (id: string) => Promise<void>;
+  retry: () => Promise<void>;
   selectVessel: (v: Vessel | null) => void;
   setMode: (mode: 'anatomy' | 'risk') => void;
   setFeature: (key: string, value: string | number) => void;
@@ -108,20 +122,25 @@ async function score(features: Features, version: number, signal: AbortSignal, s
   void loadCounterfactual(features, target, set);
 }
 
+/** Score the current record now, keeping the last estimate on screen until the new one lands. */
+function runScore(set: SetState, get: GetState): Promise<void> {
+  clearTimeout(featureTimer);
+  active?.abort();
+  explainController?.abort();
+  const version = ++sequence;
+  active = new AbortController();
+  set({ loading: true, error: null });
+  return score(get().features, version, active.signal, set, get).catch(e => {
+    if (version === sequence && (e as Error).name !== 'AbortError') set({ loading: false, error: (e as Error).message });
+  });
+}
+
 function scheduleScore(set: SetState, get: GetState) {
   clearTimeout(featureTimer);
-  featureTimer = setTimeout(() => {
-    active?.abort();
-    explainController?.abort();
-    const version = ++sequence;
-    active = new AbortController();
-    const current = get().features;
-    set({ loading: true, error: null });
-    void score(current, version, active.signal, set, get).catch(e => {
-      if (version === sequence && (e as Error).name !== 'AbortError') set({ loading: false, error: (e as Error).message });
-    });
-  }, 250);
+  featureTimer = setTimeout(() => { void runScore(set, get); }, 250);
 }
+
+const roundTenth = (value: number) => Math.round(value * 10) / 10;
 
 export const useStore = create<State>((set, get) => ({
   registry: null,
@@ -191,6 +210,7 @@ export const useStore = create<State>((set, get) => ({
       if (version === sequence && (e as Error).name !== 'AbortError') set({ loading: false, error: (e as Error).message });
     }
   },
+  retry: () => runScore(set, get),
   selectVessel: selected => {
     set({ selected });
     const { analysis, features } = get();
@@ -202,9 +222,15 @@ export const useStore = create<State>((set, get) => ({
   setMode: mode => set({ mode }),
   setFeature: (key, value) => {
     const features = { ...get().features, [key]: value };
-    if ((key === 'weight' || key === 'height') && features.weight != null && features.height != null) {
-      const meters = Number(features.height) / 100;
-      if (meters > 0) features.bmi = Math.round((Number(features.weight) / (meters * meters)) * 10) / 10;
+    // Weight, height and BMI are one fact entered three ways; keep them consistent
+    // (the counterfactual applies the same rule: a BMI change recomputes weight).
+    const meters = Number(features.height) / 100;
+    if (features.height != null && meters > 0) {
+      if ((key === 'weight' || key === 'height') && features.weight != null) {
+        features.bmi = roundTenth(Number(features.weight) / (meters * meters));
+      } else if (key === 'bmi') {
+        features.weight = roundTenth(Number(value) * meters * meters);
+      }
     }
     set({ features });
     scheduleScore(set, get);

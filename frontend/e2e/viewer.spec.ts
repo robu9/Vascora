@@ -108,7 +108,7 @@ test('rendering performance during orbit and heartbeat', async ({ page, browser 
   });
   await page.mouse.move(500, 450); await page.mouse.down();
   await page.mouse.move(760, 480, { steps: 100 }); await page.mouse.move(450, 430, { steps: 100 }); await page.mouse.up();
-  const report = { ...await measured, browser: browser.version(), platform: `${os.platform()} ${os.arch()}`, cpu: os.cpus()[0]?.model, headless: true, date: '2026-10-13' };
+  const report = { ...await measured, browser: browser.version(), platform: `${os.platform()} ${os.arch()}`, cpu: os.cpus()[0]?.model, headless: true, date: new Date().toISOString().slice(0, 10) };
   await writeFile('../assets-pipeline/performance.json', JSON.stringify(report, null, 2) + '\n');
   expect(report.fps).toBeGreaterThanOrEqual(30);
 });
@@ -160,12 +160,29 @@ test('clinical edits, explanations and held-out metrics stay tied to the heart',
   await expect(page.locator('.big-probability')).not.toHaveText(before, { timeout: 20000 });
   await expect(page.getByRole('button', { name: 'Risk overlay' })).toHaveAttribute('aria-pressed', 'true');
 });
+test('empty or partial numbers are never scored and revert on blur', async ({ page }) => {
+  const posted: Record<string, unknown>[] = [];
+  page.on('request', r => { if (r.url().endsWith('/api/predict')) posted.push(r.postDataJSON()); });
+  await page.goto('/'); await page.getByLabel('Sample patient').selectOption('moderate-risk');
+  await expect(page.getByRole('button', { name: 'Risk overlay' })).toBeEnabled();
+  const age = page.getByLabel('Age', { exact: true });
+  posted.length = 0;
+  await age.fill('');
+  await expect(age).toHaveValue('');
+  await expect(page.getByText('Enter 18–100 years')).toBeVisible();
+  await age.pressSequentially('67', { delay: 400 }); // "6" alone outlasts the 250 ms debounce
+  await page.waitForTimeout(800);
+  expect(posted.map(body => body.age)).toEqual([67]);
+  await expect(page.locator('.intake [role=alert]')).toHaveCount(0);
+  await age.fill('5'); await age.blur();
+  await expect(age).toHaveValue('67');
+});
 test('the safety disclaimer is acknowledged before the first session', async ({ browser }) => {
   const page = await browser.newPage();
   await page.goto('http://127.0.0.1:5173/');
   const dialog = page.getByRole('dialog', { name: 'Decision support only' });
   await expect(dialog).toBeVisible();
-  await expect(dialog).toContainText('not a substitute');
+  await expect(dialog).toContainText(/not a substitute/i);
   await page.getByRole('button', { name: 'I understand' }).click();
   await expect(dialog).toHaveCount(0);
   await page.reload();

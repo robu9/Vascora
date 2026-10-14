@@ -131,6 +131,27 @@ def test_predict_row_matches_predict_proba(dataset):
         assert a[t] == pytest.approx(float(b[t][0]), abs=1e-9)
 
 
+def test_row_interval_matches_bootstrap_interval(dataset):
+    from vascora_ml.ensemble import TargetSpec, VascoraModel
+
+    X, Y = dataset
+    Xb = data.encode_base(X).iloc[:80]
+    Ys = Y.loc[Xb.index]
+    specs = {
+        "CAD": TargetSpec([("logreg", {"C": 0.1, "l1_ratio": 0.5})]),
+        "LAD": TargetSpec([("logreg", {"C": 0.1, "l1_ratio": 0.5})], parents=["CAD"]),
+    }
+    model = VascoraModel(specs).fit(Xb, Ys[list(specs)], n_members=4, n_jobs=1)
+    row = Xb.iloc[0].to_dict()
+    row_iv = model.predict_row_interval(row)
+    lo_b, hi_b = zip(*(model.predict_interval(Xb.iloc[[0]])[t] for t in specs), strict=True)
+    for i, t in enumerate(specs):
+        p, lo, hi = row_iv[t]
+        assert lo <= p <= hi
+        assert lo == pytest.approx(min(float(lo_b[i][0]), p), abs=1e-9)
+        assert hi == pytest.approx(max(float(hi_b[i][0]), p), abs=1e-9)
+
+
 def test_encode_rejects_unknown_category(dataset):
     X, _ = dataset
     bad = X.head(2).copy()

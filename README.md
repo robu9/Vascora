@@ -32,13 +32,23 @@ backend/
     config.py            # paths and settings (env-overridable)
     registry.py          # loads shared JSON, builds the PatientFeatures model, leakage guard
     services.py          # prediction/explanation assembly
-    predictors/          # Predictor protocol + heuristic stub (trained model plugs in here)
+    predictors/          # Predictor protocol, trained ensemble adapter, heuristic stub fallback
     routes/              # meta, inference, metrics, samples
     data/                # sample patient presets
   tests/
 ml/
+  src/vascora_ml/        # data, features, model zoo, nested CV, ensemble, SHAP, counterfactuals
   data/                  # raw dataset (gitignored)
-  artifacts/             # trained models, metrics.json
+  artifacts/             # trained model, metrics.json, CV results
+  notebooks/             # EDA, training/evaluation, explainability
+  reports/               # plots produced by the notebooks
+  tests/
+frontend/
+  src/                   # React app: store, heart scene, patient form, clinical panels
+  public/models/         # heart.glb plus attribution and source license
+  e2e/                   # Playwright browser tests
+assets-pipeline/         # Blender export, meshopt compression and validation of heart.glb
+docs/                    # REPORT.md and DEMO_SCRIPT.md
 ```
 
 The target keys `CAD`, `LAD`, `LCX`, `RCA` are the single contract shared by the model
@@ -104,8 +114,9 @@ logistic baseline itself scores at the 4th percentile of its own CV distribution
 with 61 test patients the confidence intervals are wide (no model beats the baseline with
 statistical significance on the test set). The test figures are the ones to quote.
 
-Serving: the API answers `/api/predict` in about 60 ms and `/api/explain` (SHAP for all four
-targets) in about 0.5 s, with repeat requests for the same patient served from cache.
+Serving: the API answers `/api/predict` in about 0.2 s, most of it spent scoring the ten
+bootstrap refits behind each 90% interval, and `/api/explain` (SHAP for all four targets) in
+about 0.5 s, with repeat explanations for the same patient served from cache.
 
 ## Running the backend
 
@@ -212,7 +223,7 @@ curl -X POST localhost:8000/api/predict -H "Content-Type: application/json" \
 ```json
 {
   "model": {"name": "calibrated-ensemble", "version": "1.0.0", "is_placeholder": false},
-  "cad": {"target": "CAD", "probability": 0.98, "predicted_positive": true, "threshold": 0.5, "ci": null},
+  "cad": {"target": "CAD", "probability": 0.997, "predicted_positive": true, "threshold": 0.505, "ci": [0.988, 0.999]},
   "vessels": {"LAD": {...}, "LCX": {...}, "RCA": {...}},
   "imputed": ["weight", "height", ...],
   "disclaimer": "For decision support and educational purposes only. ..."
@@ -222,8 +233,8 @@ curl -X POST localhost:8000/api/predict -H "Content-Type: application/json" \
 ### Placeholder model
 
 When `ml/artifacts/vascora_model.joblib` exists, `/predict` and `/explain` are served by the
-trained ensemble (`model.is_placeholder: false`), including a per-prediction 90% interval and
-SHAP attributions that sum exactly to the predicted log-odds. Otherwise the API falls back to
+trained ensemble (`model.is_placeholder: false`), including a per-prediction 90% interval (the
+spread of ten bootstrap refits of the whole model) and SHAP attributions that sum exactly to the predicted log-odds. Otherwise the API falls back to
 `backend/app/predictors/stub.py`, a heuristic placeholder that is **not fitted to data** and
 reports `model.is_placeholder: true`. Force the fallback with `VASCORA_PREDICTOR=stub`.
 

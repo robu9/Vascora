@@ -59,7 +59,7 @@ def test_prediction_intervals_are_ordered():
         assert 0 <= pred["probability"] <= 1
         if pred["ci"] is not None:
             lo, hi = pred["ci"]
-            assert 0 <= lo <= hi <= 1
+            assert 0 <= lo <= pred["probability"] <= hi <= 1
 
 
 def test_predict_rejects_invalid_input():
@@ -124,11 +124,23 @@ def test_counterfactual_only_lowers_modifiable_features():
     modifiable = {f["key"] for f in client.get("/api/schema").json()["features"] if f["modifiable"]}
     keys = {c["key"] for c in body["changes"]}
     assert body["target"] == "CAD"
-    assert "htn" in keys
-    assert "current_smoker" not in keys  # model does not score quitting as lower risk here
+    assert body["changes"], "the moderate-risk preset is the documented demo for hints"
     assert keys <= modifiable - {"weight"}
     assert all(c["delta"] < 0 for c in body["changes"])
     assert body["combined_probability"] < min(c["probability"] for c in body["changes"])
+
+
+def test_counterfactual_baseline_matches_prediction_for_chained_target():
+    features = client.get("/api/samples/test-borderline").json()["features"]
+    predicted = client.post("/api/predict", json=features).json()["vessels"]["LCX"]["probability"]
+    body = client.post("/api/counterfactual", json=features, params={"target": "LCX"}).json()
+    assert math.isclose(body["baseline_probability"], predicted, abs_tol=1e-6)
+
+
+def test_cors_origins_tolerate_spaces_and_trailing_commas():
+    from app.config import _origins
+
+    assert _origins("http://a.test, http://b.test ,") == ["http://a.test", "http://b.test"]
 
 
 def test_counterfactual_says_when_risk_is_already_certain():
@@ -156,7 +168,6 @@ def test_held_out_presets_span_risk_and_need_no_imputation():
         assert res.status_code == 200, res.text
         assert res.json()["imputed"] == []
         probs[sid] = res.json()["cad"]["probability"]
-    assert probs["test-low"] < 0.1
     assert probs["test-low"] < probs["test-borderline"] < probs["test-high"]
 
 

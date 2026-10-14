@@ -14,6 +14,11 @@ def _paths(env: str, default: Path) -> Path:
     return Path(os.getenv(env, str(default))).resolve()
 
 
+def _origins(raw: str) -> list[str]:
+    """Comma-separated origins; tolerates spaces and trailing commas."""
+    return [o.strip() for o in raw.split(",") if o.strip()]
+
+
 @dataclass(frozen=True)
 class Settings:
     shared_dir: Path = field(
@@ -24,9 +29,9 @@ class Settings:
     )
     predictor: str = field(default_factory=lambda: os.getenv("VASCORA_PREDICTOR", "auto"))
     cors_origins: list[str] = field(
-        default_factory=lambda: os.getenv(
-            "VASCORA_CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173"
-        ).split(",")
+        default_factory=lambda: _origins(
+            os.getenv("VASCORA_CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173")
+        )
     )
 
     @property

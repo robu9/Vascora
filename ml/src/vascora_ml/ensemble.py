@@ -1,6 +1,7 @@
 """Final deployable model: calibrated soft-vote ensembles per target, optional chaining."""
 
 from dataclasses import dataclass, field
+from statistics import NormalDist
 
 import numpy as np
 import pandas as pd
@@ -158,31 +159,59 @@ class VascoraModel:
     def predict_proba(self, Xb: pd.DataFrame) -> dict[str, np.ndarray]:
         return self._predict_set(self.estimators_, Xb)
 
+    def _predict_row_set(self, fitted: dict[str, object], row: dict) -> dict[str, float]:
+        """Row counterpart of `_predict_set`: chain parents come from the same fitted set."""
+        out: dict[str, float] = {}
+        for t in self.targets:
+            r = dict(row)
+            for p in self.specs[t].parents:
+                r[parent_column(p)] = out[p]
+            out[t] = fitted[t].predict_row(r)
+        return out
+
     def predict_row(self, row: dict) -> dict[str, float]:
         """Single-patient prediction used by the API (avoids per-row DataFrame cost)."""
-        return {t: p for t, (p, _lo, _hi) in self.predict_row_interval(row).items()}
+        return self._predict_row_set(self.estimators_, row)
 
-    def predict_row_interval(self, row: dict, z: float = 1.645) -> dict[str, tuple]:
-        """Point prediction plus an approximate 90 % interval per target.
+    def predict_row_interval(self, row: dict, alpha: float = 0.1) -> dict[str, tuple]:
+        """Point prediction plus a (1 - alpha) interval per target: {t: (p, lo, hi)}.
 
-        The interval combines the disagreement of the ensemble members with the calibration
-        uncertainty of the Platt mapping; it is the fast counterpart of the bootstrap
-        `predict_interval` used for batch reporting.
+        With bootstrap members, the interval is the percentile range of the bootstrap refits,
+        the single-row counterpart of `predict_interval`, widened when needed so it always
+        contains the point estimate. It measures how much the fit depends on which patients
+        it was trained on; it does not include calibration error.
+
+        Without members it falls back to the spread of the ensemble's own votes, which is far
+        narrower and should be read as a lower bound on uncertainty.
         """
+        point = self.predict_row(row)
+        if not self.members_:
+            return self._vote_spread_interval(row, point, alpha)
+        draws = [self._predict_row_set(m, row) for m in self.members_]
+        out: dict[str, tuple] = {}
+        for t in self.targets:
+            lo, hi = np.quantile([d[t] for d in draws], [alpha / 2, 1 - alpha / 2])
+            p = point[t]
+            out[t] = (p, float(min(lo, p)), float(max(hi, p)))
+        return out
+
+    def _vote_spread_interval(
+        self, row: dict, point: dict[str, float], alpha: float
+    ) -> dict[str, tuple]:
+        """Standard error of the member votes, carried through logit and the Platt mapping."""
+        z = NormalDist().inv_cdf(1 - alpha / 2)
         out: dict[str, tuple] = {}
         for t in self.targets:
             r = dict(row)
             for p in self.specs[t].parents:
-                r[parent_column(p)] = out[p][0]
+                r[parent_column(p)] = point[p]
             est = self.estimators_[t]
             member_p = est.member_probabilities(r)
-            mean = float(member_p.mean())
+            mean = float(np.clip(member_p.mean(), 1e-6, 1 - 1e-6))
             se = (float(member_p.std(ddof=1) / np.sqrt(len(member_p)))
                   if len(member_p) > 1 else 0.0)
             coef = float(est.calibrator_.coef_[0, 0])
-            intercept = float(est.calibrator_.intercept_[0])
-            prob = float(_sigmoid(coef * float(_logit(np.array([mean]))[0]) + intercept))
-            # Chain rule through logit(mean probability) and the Platt mapping.
+            prob = point[t]
             slope = abs(coef) * prob * (1 - prob) / (mean * (1 - mean))
             half = z * slope * se
             out[t] = (prob, float(np.clip(prob - half, 0, 1)),

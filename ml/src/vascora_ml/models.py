@@ -55,7 +55,7 @@ def _logreg_space(t: optuna.Trial) -> Params:
 
 
 def _svm(p: Params, seed: int):
-    # SVC has no native probabilities in sklearn>=1.9; Platt-scale it with an inner CV.
+    # Platt-scale the SVC margin with an inner CV via CalibratedClassifierCV.
     svc = SVC(C=p["C"], gamma=p["gamma"], kernel="rbf", random_state=seed)
     return _pipe(CalibratedClassifierCV(svc, method="sigmoid", cv=3), scale=True)
 

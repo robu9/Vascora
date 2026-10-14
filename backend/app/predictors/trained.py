@@ -47,8 +47,9 @@ class TrainedPredictor:
                 self.model.predict_row_interval(row).items()}
 
     def predict_many(self, rows: list[dict[str, Any]], target: str):
+        """Probabilities for one target; only that target and its chain parents are scored."""
         frame = pd.DataFrame(rows)[list(self.registry.features)]
-        return self.model.predict_proba(encode_base(frame))[target]
+        return self.model.predict_target(encode_base(frame), target)
 
     def _shap(self, values: dict[str, Any]) -> dict[str, Any]:
         key = tuple(values[k] for k in self.registry.features)

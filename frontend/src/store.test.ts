@@ -46,12 +46,36 @@ it('re-scores an edited feature without dropping the current estimate first', as
   expect(useStore.getState().analysis?.prediction.model.name).toBe('edited');
   expect(useStore.getState().mode).toBe('risk');
 });
-it('keeps body mass consistent when height or weight changes', () => {
+it('keeps body mass consistent when height, weight or BMI changes', () => {
   vi.useFakeTimers();
   vi.stubGlobal('fetch', vi.fn());
   useStore.setState({ features: { weight: 80, height: 180, bmi: 20 } });
   useStore.getState().setFeature('weight', 90);
   expect(useStore.getState().features.bmi).toBe(27.8);
+  useStore.getState().setFeature('bmi', 25);
+  expect(useStore.getState().features.weight).toBe(81);
+});
+it('retries the edited record instead of reloading the preset', async () => {
+  vi.useFakeTimers();
+  useStore.setState({ sampleId: 'a', features: { age: 60 } });
+  const fetch = vi.fn()
+    .mockResolvedValueOnce(new Response('', { status: 503 }))
+    .mockImplementation(() => Promise.resolve(new Response(JSON.stringify(scored('retried')))));
+  vi.stubGlobal('fetch', fetch);
+  useStore.getState().setFeature('age', 81);
+  await vi.advanceTimersByTimeAsync(250);
+  await vi.waitFor(() => expect(useStore.getState().error).toContain('503'));
+  await useStore.getState().retry();
+  expect(useStore.getState().error).toBeNull();
+  expect(useStore.getState().features.age).toBe(81);
+  expect(JSON.parse(fetch.mock.calls[1][1].body).age).toBe(81);
+  expect(useStore.getState().analysis?.prediction.model.name).toBe('retried');
+});
+it('shows the field and reason when the API rejects an input', async () => {
+  const detail = [{ loc: ['body', 'age'], msg: 'Input should be greater than or equal to 18' }];
+  vi.stubGlobal('fetch', vi.fn(() => Promise.resolve(new Response(JSON.stringify({ detail }), { status: 422 }))));
+  await useStore.getState().selectSample('a');
+  expect(useStore.getState().error).toBe('age: Input should be greater than or equal to 18');
 });
 it('colors the heart before the factor breakdown returns', async () => {
   const pending: ((r: Response) => void)[] = [];

@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { DisclaimerModal, ExplanationPanel, MetricsPanel } from './ClinicalPanels';
 import { HeartScene } from './HeartScene';
 import { PatientForm } from './PatientForm';
@@ -8,9 +9,12 @@ import { useStore } from './store';
 const disclaimer = 'For decision support and educational purposes only. Not a substitute for coronary angiography or formal diagnostic imaging.';
 
 export default function App() {
-  const state = useStore();
-  useEffect(() => { void state.initialize(); }, []);
-  const { analysis, selected, registry } = state;
+  const initialize = useStore(s => s.initialize);
+  const selectVessel = useStore(s => s.selectVessel);
+  const { analysis, selected, registry, loading } = useStore(useShallow(s => ({
+    analysis: s.analysis, selected: s.selected, registry: s.registry, loading: s.loading,
+  })));
+  useEffect(() => { void initialize(); }, [initialize]);
   const target = selected ?? 'CAD';
   const prediction = selected ? analysis?.prediction.vessels[selected] : analysis?.prediction.cad;
   return <div className="app-shell">
@@ -28,14 +32,14 @@ export default function App() {
         <section className="risk-summary">
           <div className="section-title"><span className="eyebrow">OVERALL CAD ESTIMATE</span><span className="small-tag">CAD</span></div>
           <div className="big-probability">{analysis ? percent(analysis.prediction.cad.probability) : '—'}<span>estimated probability</span></div>
-          {state.loading && !analysis && <p className="classification" role="status">Scoring LAD, LCX and RCA…</p>}
+          {loading && !analysis && <p className="classification" role="status">Scoring LAD, LCX and RCA…</p>}
           {analysis && <p className="classification">{analysis.prediction.cad.predicted_positive ? 'Above' : 'Below'} model threshold · {percent(analysis.prediction.cad.threshold)}</p>}
         </section>
         <section className="vessel-section">
           <div className="section-title"><span className="eyebrow">CORONARY ARTERIES</span><span className="hint">Select to explore</span></div>
           <div className="vessel-list">{vessels.map(vessel => {
             const probability = analysis?.prediction.vessels[vessel].probability;
-            return <button className={`vessel-card ${selected === vessel ? 'selected' : ''}`} key={vessel} aria-pressed={selected === vessel} onClick={() => state.selectVessel(vessel)}>
+            return <button className={`vessel-card ${selected === vessel ? 'selected' : ''}`} key={vessel} aria-pressed={selected === vessel} onClick={() => selectVessel(vessel)}>
               <span className="vessel-symbol">{vessel === 'LAD' ? '01' : vessel === 'LCX' ? '02' : '03'}</span>
               <span className="vessel-name"><strong>{vessel}</strong><small>{registry?.targets[vessel]?.label ?? vessel}</small></span>
               <span className="vessel-value">{probability == null ? '—' : percent(probability)}<small>↗</small></span>
@@ -45,7 +49,7 @@ export default function App() {
           <div className="legend"><div className="legend-gradient"/><div><span>0% · lower probability</span><span>100% · higher</span></div></div>
         </section>
         <section className="detail-section" aria-live="polite">
-          <div className="section-title"><span className="eyebrow">{target} · DETAILS</span>{selected && <button className="text-button" onClick={() => state.selectVessel(null)}>View CAD</button>}</div>
+          <div className="section-title"><span className="eyebrow">{target} · DETAILS</span>{selected && <button className="text-button" onClick={() => selectVessel(null)}>View CAD</button>}</div>
           <p>{selected ? registry?.targets[selected]?.description : 'Select a vessel on the heart or in the list to inspect its estimate and the factors behind it.'}</p>
           {prediction && <dl className="details-grid">
             <div><dt>Probability</dt><dd>{percent(prediction.probability)}</dd></div>

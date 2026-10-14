@@ -19,7 +19,13 @@ class TargetPrediction(BaseModel):
     probability: float = Field(ge=0, le=1)
     predicted_positive: bool
     threshold: float = Field(ge=0, le=1)
-    ci: tuple[float, float] | None = None
+    ci: tuple[float, float] | None = Field(
+        default=None,
+        description=(
+            "90% range of the probability across bootstrap refits of the model, always "
+            "containing the point estimate. Null when the predictor has no uncertainty estimate."
+        ),
+    )
 
 
 class PredictResponse(BaseModel):

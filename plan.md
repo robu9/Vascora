@@ -159,16 +159,18 @@ Layout: left = patient input (schema-driven form, presets, sliders for what-if w
 
 ## Task checklist
 
-- [ ] Create README.md in repo root containing this plan, setup steps, licenses/attribution section
-- [ ] Scaffold monorepo: ml/ (uv, Python 3.12), backend/ (FastAPI), frontend/ (Vite React TS R3F), shared/ contracts
+- [x] Create README.md in repo root containing this plan, setup steps, licenses/attribution section
+- [x] Scaffold monorepo: ml/ (uv, Python 3.12), backend/ (FastAPI), frontend/ (Vite React TS R3F), shared/ contracts
 - [x] Download Z-Alizadeh Sani dataset, preprocess, EDA, feature_schema.json, leakage guard + test
 - [x] Nested repeated CV model zoo (LogReg, SVM, RF, ET, XGB, LGBM, CatBoost) with Optuna, for CAD/LAD/LCX/RCA; compare independent vs classifier chain
 - [x] Soft-vote ensemble + calibration + threshold tuning + bootstrap CIs; export artifacts and metrics.json + plots
 - [x] SHAP explainers per target with cached background, grouped categories, global importance, counterfactual hints on modifiable features
 - [x] FastAPI endpoints /schema /predict /explain /metrics /samples /counterfactual with Pydantic + model registry
-- [ ] Asset pipeline: Sketchfab CC-BY heart + Z-Anatomy coronaries/torso, align in Blender, segment-named meshes, gltf-transform compress + LOD
-- [ ] R3F scene: physical myocardium material, HDRI, AO/bloom/SMAA, heartbeat shader, coronary blood-flow shader, x-ray torso
-- [ ] vessel_registry.json mapping, risk color ramp with animated transitions, stenosis bulge, hover/select/fly-to, labels, view presets
+- [x] Asset pipeline: Z-Anatomy heart and coronaries, Blender alignment, segment-named meshes, meshopt compression, validation
+- [ ] Asset pipeline follow-ups: textured Sketchfab heart, torso shell, LODs
+- [x] R3F scene: physical myocardium material with procedural tissue shading, illustrative heartbeat
+- [ ] R3F scene follow-ups: HDRI, AO/bloom/SMAA, x-ray torso (coronary blood-flow shader is outside the probability-only milestone)
+- [x] vessel_registry.json mapping, risk color ramp with animated transitions, hover/select/fly-to, labels, view presets (stenosis bulge is outside the probability-only milestone)
 - [x] Dashboard: schema-driven form, presets, what-if sliders live re-predict, CAD/vessel cards, SHAP waterfall, vitals breakdown, metrics tab
 - [x] Persistent disclaimer banner + first-load modal
 - [ ] PDF export and PDF footer
